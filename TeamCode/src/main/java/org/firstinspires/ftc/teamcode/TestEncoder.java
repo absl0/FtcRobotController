@@ -82,7 +82,7 @@ public class TestEncoder extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        robot.moveForwardToPosition(0.4, 36);
+     /*   robot.moveForwardToPosition(0.4, 36);
         sleep(1000);
         robot.moveBackwardToPosition(0.4, 24);
         sleep(1000);
@@ -96,6 +96,7 @@ public class TestEncoder extends LinearOpMode {
         robot.rotateAntiClock(-90, 0.4);
         telemetry.addData("Path", "Complete");
         telemetry.update();
-        sleep(1000);
+        sleep(1000); */
+        robot.pushPlane();
     }
 }

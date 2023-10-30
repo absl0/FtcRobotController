@@ -112,6 +112,10 @@ public class TeleopTest extends LinearOpMode{
                 robot.moveB(0.5, 10);
             }
 
+            if (this.gamepad1.a == true){
+                robot.pushPlane();
+            }
+
 
         };
     };

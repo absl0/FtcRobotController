@@ -86,7 +86,7 @@ public class Robot extends Thread {
         Motor_BR = hardwareMap.get(DcMotorEx.class, "motor_br");
         Motor_BL = hardwareMap.get(DcMotorEx.class, "motor_bl");
 
-      //  planePusher = hardwareMap.get(Servo.class, "planePusher");
+        planePusher = hardwareMap.get(Servo.class, "planePusher");
 
        /*Motor_FR.setVelocityPIDFCoefficients(0.95, 0.095, 0, 9.5);
         Motor_FR.setPositionPIDFCoefficients(5.0);
@@ -844,10 +844,17 @@ public class Robot extends Thread {
         Log.i(TAG, "Exit Function: rotate");
     }
 
-    /*
+
     public void pushPlane (){
-        planePusher.setPosition(0.19);
-    }*/
+        planePusher.setDirection(Servo.Direction.REVERSE);
+        planePusher.setPosition(0.8);
+        try {
+            sleep(1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        planePusher.setPosition(0.0);
+    }
 
 }
 
