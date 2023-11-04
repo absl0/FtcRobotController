@@ -55,12 +55,21 @@ import java.util.concurrent.TimeUnit;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
  */
-@Autonomous(name = "Object Detection", group = "Concept")
+@Autonomous(name = "Team Object Detection", group = "Concept")
 //@Disabled
 public class TeamObjectDetection extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
     // Adjust these numbers to suit your robot.
+
+    private static final String TFOD_MODEL_ASSET = "MyModelStoredAsAsset.tflite";
+    // TFOD_MODEL_FILE points to a model file stored onboard the Robot Controller's storage,
+    // this is used when uploading models directly to the RC using the model upload interface.
+    private static final String TFOD_MODEL_FILE = "/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
+    // Define the labels recognized in the model for TFOD (must be in training order!)
+    private static final String[] LABELS = {
+            "Pixel",
+    };
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
@@ -88,7 +97,7 @@ public class TeamObjectDetection extends LinearOpMode {
      * The variable to store our instance of the vision portal.
      */
     private VisionPortal visionPortal;
-    private String TFOD_MODEL_FILE="TEAM_MODEL.tflite";
+    // private String TFOD_MODEL_FILE="TEAM_MODEL.tflite";
 
     @Override
     public void runOpMode() {
@@ -151,10 +160,10 @@ public class TeamObjectDetection extends LinearOpMode {
 // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must match the names assigned during the robot configuration.
         // step (using the FTC Robot Controller app on the phone).
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "motor_br");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "motor_bl");
-        leftBackDrive  = hardwareMap.get(DcMotor.class, "motor_fr");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "motor_fl");
+        leftFrontDrive  = hardwareMap.get(DcMotor.class, "motor_fl");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "motor_fr");
+        leftBackDrive  = hardwareMap.get(DcMotor.class, "motor_bl");
+        rightBackDrive = hardwareMap.get(DcMotor.class, "motor_br");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.

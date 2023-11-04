@@ -30,10 +30,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -80,12 +79,28 @@ import java.util.concurrent.TimeUnit;
  *
  */
 
-@Autonomous(name="Team - Drive To AprilTag", group = "Concept")
+@Autonomous(name="Team - Blue Left Auto", group = "Concept")
 //@Disabled
-public class AutoDriveToAprilTag extends LinearOpMode
+public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
 {
+    private ElapsedTime runtime = new ElapsedTime();
+
+    // Calculate the COUNTS_PER_INCH for your specific drive train.
+    // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
+    // For external drive gearing, set DRIVE_GEAR_REDUCTION as needed.
+    // For example, use a value of 2.0 for a 12-tooth spur gear driving a 24-tooth spur gear.
+    // This is gearing DOWN for less speed and more torque.
+    // For gearing UP, use a gear ratio less than 1.0. Note this will affect the direction of wheel rotation.
+    static final double     COUNTS_PER_MOTOR_REV    = 500 ;    // eg: TETRIX Motor Encoder 1440
+    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // No External Gearing.
+    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+            (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     DRIVE_SPEED             = 0.6;
+    static final double     TURN_SPEED              = 0.5;
+
     // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 5.0; //  this is how close the camera should get to the target (inches)
+    final double DESIRED_DISTANCE = 1.0; //  this is how close the camera should get to the target (inches)
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
@@ -103,7 +118,7 @@ public class AutoDriveToAprilTag extends LinearOpMode
     private DcMotor leftBackDrive    = null;  //  Used to control the left back drive wheel
     private DcMotor rightBackDrive   = null;  //  Used to control the right back drive wheel
 
-    private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
+    private static final boolean USE_WEBCAM = false;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
@@ -149,11 +164,96 @@ public class AutoDriveToAprilTag extends LinearOpMode
             targetFound = false;
             desiredTag  = null;
 
+            //sleep(3000);
+            // Apply desired axes motions to the drivetrain.
+            //drive = 0.13;
+            //moveRobot(drive, 0.0, 0.0);
+            //moveForward(.13);
+            // to to team object
+            int team_object_position = 1; // default it to center 0 - Center, 1 left and 2 right
+            float team_object_distance = 24;
+            telemetry.addData("Auto - move to team object","Drive %5.2f inches ", team_object_distance);
+            telemetry.update();
+            sleep(1000);
+            encoderDrive(DRIVE_SPEED,  team_object_distance,  team_object_distance, 3.0);  // S1: Forward 24 Inches with 5 Sec timeout
+            float turn_distance = 26;
+            float reverse_distance = 4;
+            // Decide what to do based on position
+            // if center then put pixel next to team object, go back 2 inch and turn left
+            // if left then turn left, move forward 2 inches, put pixel next to team object, move back 2 inches, move left 8 inches
+            // if right then turn right, move forward 2 inches, put pixel next to team object, move back 2 inches, turn 180 degrees
+            if (team_object_position == 0) {
+                // if team object is in center
+                //move back and leave the pixel
+                telemetry.addData("Auto - drop  team object", "Drive back %5.2f inches ", reverse_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(DRIVE_SPEED, -reverse_distance, -reverse_distance, 2.0);  // S1: Forward 24 Inches with 5 Sec timeout
+                // turn left towards the board
+                telemetry.addData("Auto - turn left","turn left %5.2f inches ", turn_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(TURN_SPEED,   -turn_distance, turn_distance, 3.0);
+            } else if (team_object_position == 1){
+                // if team object position is left
+                // turn left towards the board
+                telemetry.addData("Auto - turn left","turn left %5.2f inches ", turn_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(TURN_SPEED,   -turn_distance, turn_distance, 3.0);
+                //move forward and drop the pixel
+                telemetry.addData("Auto - drop  team object", "Drive forward %5.2f inches ", reverse_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(DRIVE_SPEED, reverse_distance, reverse_distance, 2.0);
+                //move back
+                telemetry.addData("Auto - drive back", "Drive back %5.2f inches ", reverse_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(DRIVE_SPEED, -reverse_distance, -reverse_distance, 2.0);
+            } else {
+                // if team object position is right
+                // turn right towards the team object
+                telemetry.addData("Auto - turn right","turn right %5.2f inches ", turn_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(TURN_SPEED,   turn_distance, -turn_distance, 3.0);
+                //move forward and drop the pixel
+                telemetry.addData("Auto - drop  team object", "Drive forward %5.2f inches ", reverse_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(DRIVE_SPEED, reverse_distance, reverse_distance, 2.0);
+                //move back
+                telemetry.addData("Auto - drive back", "Drive back %5.2f inches ", reverse_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(DRIVE_SPEED, -reverse_distance, -reverse_distance, 2.0);
+                // turn 180 degrees towards the team object
+                telemetry.addData("Auto - turn 180 degrees","turn right %5.2f inches ", turn_distance);
+                telemetry.update();
+                sleep(1000);
+                encoderDrive(TURN_SPEED,   (turn_distance+1)*2, -(turn_distance+1)*2, 6.0);
+            }
+
+//            // turn left towards the board
+//            float turn_distance = 26;
+//            telemetry.addData("Auto - turn left","Drive back %5.2f inches ", turn_distance);
+//            telemetry.update();
+//            sleep(1000);
+//            encoderDrive(TURN_SPEED,   -turn_distance, turn_distance, 3.0);
+
+            // drive towards April Tag - hardcoded distance
+            float april_tag_distance = 48;
+            telemetry.addData("Auto - drive to April Tag","Drive back %5.2f inches ", april_tag_distance);
+            telemetry.update();
+            sleep(1000);
+            encoderDrive(DRIVE_SPEED,  april_tag_distance,  april_tag_distance, 6.0);
+            // drive using april tag code
             // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
                 if ((detection.metadata != null) &&
-                    ((DESIRED_TAG_ID < 0) || (detection.id == DESIRED_TAG_ID))  ){
+                        ((DESIRED_TAG_ID < 0) || (detection.id == DESIRED_TAG_ID))  ){
                     targetFound = true;
                     desiredTag = detection;
                     break;  // don't look any further.
@@ -196,11 +296,25 @@ public class AutoDriveToAprilTag extends LinearOpMode
                 telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             }
             telemetry.update();
+            //moveRobot(drive, strafe, turn);
 
-            // Apply desired axes motions to the drivetrain.
-            moveRobot(drive, strafe, turn);
-            sleep(1000);
+
+            //some additional experimentation
+            //turnOff();
+            //telemetry.addData("Auto - move back","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", .2, strafe, turn);
+            //telemetry.update();
+            //sleep(2000);
+            //moveBackward(.05, 5);
+            //sleep(3000);
+            //moveLeft();
+            //sleep(2000);
+
+            break;
         }
+        //sleep(2000);
+        //moveBackward(.10, 5);
+        //moveRobot(-5,0,0);
+       // moveBackward(1, 5);
     }
 
     /**
@@ -236,6 +350,55 @@ public class AutoDriveToAprilTag extends LinearOpMode
         rightFrontDrive.setPower(rightFrontPower);
         leftBackDrive.setPower(leftBackPower);
         rightBackDrive.setPower(rightBackPower);
+    }
+    public void turnOff(){
+        leftFrontDrive.setPower(0);
+        rightFrontDrive.setPower(0);
+        rightBackDrive.setPower(0);
+        leftBackDrive.setPower(0);
+    }
+
+
+    public void moveForward(double power) {
+
+        leftFrontDrive.setPower(power);
+        rightFrontDrive.setPower(power);
+        rightBackDrive.setPower(power);
+        leftBackDrive.setPower(power);
+        double wait_time = 10000;
+        while (wait_time > 0){
+            int curr_power = leftFrontDrive.getCurrentPosition();
+            int target_position = rightFrontDrive.getTargetPosition();
+            telemetry.addData("current motor power is:", curr_power);
+            telemetry.addData("current wait time is:", wait_time);
+            telemetry.addData("target position is:", target_position);
+            telemetry.update();
+            wait_time = wait_time - 1000;
+            sleep(1000);
+        }
+    }
+
+    public void moveBackward(double power, long distance) {
+        leftFrontDrive.setPower((-1) * power); //FL
+        rightFrontDrive.setPower((-1) * power); //FR
+        rightBackDrive.setPower((-1) * power); //BR
+        leftBackDrive.setPower((-1) * power); //BL
+    }
+
+    public void moveLeft() {
+        double power = .28;
+        leftFrontDrive.setPower((-1)* power );
+        rightFrontDrive.setPower((1) * power);
+        rightBackDrive.setPower((1) * power);
+        leftBackDrive.setPower((-1) *  power);
+    }
+    public void moveRight() {
+        double power = .27;
+        leftFrontDrive.setPower((1) * power);
+        rightFrontDrive.setPower((-1) * power);
+        rightBackDrive.setPower((-1)* power);
+        leftBackDrive.setPower((1)* power);
+
     }
 
     /**
@@ -303,6 +466,108 @@ public class AutoDriveToAprilTag extends LinearOpMode
             GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
             gainControl.setGain(gain);
             sleep(20);
+        }
+    }
+
+    /*
+     *  Method to perform a relative move, based on encoder counts.
+     *  Encoders are not reset as the move is based on the current position.
+     *  Move will stop if any of three conditions occur:
+     *  1) Move gets to the desired position
+     *  2) Move runs out of time
+     *  3) Driver stops the OpMode running.
+     */
+    public void encoderDrive(double speed,
+                             double leftInches, double rightInches,
+                             double timeoutS) {
+
+//        leftFrontDrive.resetDeviceConfigurationForOpMode();
+//        rightFrontDrive.resetDeviceConfigurationForOpMode();
+//        leftBackDrive.resetDeviceConfigurationForOpMode();
+//        rightBackDrive.resetDeviceConfigurationForOpMode();
+
+        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // Send telemetry message to indicate successful Encoder reset
+        telemetry.addData("Starting at",  "%7d :%7d",
+                leftFrontDrive.getCurrentPosition(),
+                rightFrontDrive.getCurrentPosition());
+        telemetry.update();
+        sleep(250);
+        int newLeftTarget;
+        int newRightTarget;
+
+        // Ensure that the OpMode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+//            newLeftTarget = leftFrontDrive.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH);
+//            newRightTarget = rightFrontDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
+            newLeftTarget = (int)(leftInches * COUNTS_PER_INCH);
+            newRightTarget = (int)(rightInches * COUNTS_PER_INCH);
+            telemetry.addData("Heading to",  "%7d :%7d",
+                    newLeftTarget,
+                    newRightTarget);
+            telemetry.update();
+            sleep(500);
+
+            leftFrontDrive.setTargetPosition(newLeftTarget);
+            rightFrontDrive.setTargetPosition(newRightTarget);
+            leftBackDrive.setTargetPosition(newLeftTarget);
+            rightBackDrive.setTargetPosition(newRightTarget);
+
+            // Turn On RUN_TO_POSITION
+            leftFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            leftBackDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightBackDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            leftFrontDrive.setPower(Math.abs(speed));
+            rightFrontDrive.setPower(Math.abs(speed));
+            leftBackDrive.setPower(Math.abs(speed));
+            rightBackDrive.setPower(Math.abs(speed));
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (runtime.seconds() < timeoutS) &&
+                    (leftFrontDrive.isBusy() && rightFrontDrive.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("Running to",  " %7d :%7d", newLeftTarget,  newRightTarget);
+                telemetry.addData("Currently at",  " at %7d :%7d",
+                        leftFrontDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition());
+                telemetry.update();
+                //sleep(500);   // optional pause after each move.
+            }
+
+            // Stop all motion;
+            leftFrontDrive.setPower(0);
+            rightFrontDrive.setPower(0);
+            leftBackDrive.setPower(0);
+            rightBackDrive.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            sleep(250);   // optional pause after each move.
         }
     }
 
