@@ -62,13 +62,14 @@ public class TeamObjectDetection extends LinearOpMode {
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
     // Adjust these numbers to suit your robot.
 
-    private static final String TFOD_MODEL_ASSET = "MyModelStoredAsAsset.tflite";
+    private static final String TFOD_MODEL_ASSET = "TeamPropAbs0.tflite";//"MyModelStoredAsAsset.tflite";
     // TFOD_MODEL_FILE points to a model file stored onboard the Robot Controller's storage,
     // this is used when uploading models directly to the RC using the model upload interface.
-    private static final String TFOD_MODEL_FILE = "/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
+    private static final String TFOD_MODEL_FILE = "TeamPropAbs0.tflite";//"/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
     // Define the labels recognized in the model for TFOD (must be in training order!)
     private static final String[] LABELS = {
-            "Pixel",
+            // "Pixel",
+            "Abs0",
     };
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
 
@@ -148,9 +149,9 @@ public class TeamObjectDetection extends LinearOpMode {
             //.setModelAssetName(TFOD_MODEL_ASSET)
 
                 //set model file to trained model file
-            //.setModelFileName(TFOD_MODEL_FILE)
+            .setModelFileName(TFOD_MODEL_FILE)
 
-            //.setModelLabels(LABELS)
+            .setModelLabels(LABELS)
             //.setIsModelTensorFlow2(true)
             //.setIsModelQuantized(true)
             //.setModelInputSize(300)
@@ -338,6 +339,10 @@ public class TeamObjectDetection extends LinearOpMode {
             GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
             gainControl.setGain(gain);
             sleep(20);
+            telemetry.addData("Set exposure to",  "%7d :%7d",
+                    exposureMS,
+                    gain);
+            telemetry.update();
         }
     }
 
