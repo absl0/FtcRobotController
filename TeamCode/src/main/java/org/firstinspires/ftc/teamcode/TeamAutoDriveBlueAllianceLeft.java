@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -88,6 +89,24 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
 {
     private TfodProcessor tfod;
     private ElapsedTime runtime = new ElapsedTime();
+
+    // Declaration for Servo motor variables
+    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
+    static final int    CYCLE_MS    =   50;     // period of each cycle
+    static final double MAX_POS     =  0.1;     // Maximum rotational position
+    static final double MIN_POS     =  0.0;     // Minimum rotational position
+
+    // Define class members
+    Servo armServo, clawServo;
+    double  position = (MAX_POS - MIN_POS) / 2; // Start at halfway position
+    boolean rampUp = true;
+    double arm_start_position = .01;
+    double claw_start_position = .00;
+
+    double arm_end_position = .60;
+    double claw_end_position = .10;
+
+
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
@@ -156,7 +175,10 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         rightFrontDrive = hardwareMap.get(DcMotor.class, "motor_fr");
         leftBackDrive  = hardwareMap.get(DcMotor.class, "motor_bl");
         rightBackDrive = hardwareMap.get(DcMotor.class, "motor_br");
+        armServo = hardwareMap.get(Servo.class, "armServo");
+        clawServo = hardwareMap.get(Servo.class, "clawServo");
 
+        initServo();
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
@@ -179,14 +201,23 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
             //targetFound = false;
             desiredTag  = null;
             int obj_location = teamObjectDetectionTfod();
+            //drive to team object
             teamAutoDrive(obj_location);
+            //sleep for some time to give camera time to detect april tag
+            sleep(1000);
             //drive to April Tag
             driveToTeamAprilTag(obj_location);
             //sleep(1000);
+            dropPixel();
             break;
         }
     }
 
+    private void initServo(){
+        clawServo.setPosition(claw_start_position);
+        sleep(2000);
+        armServo.setPosition(arm_start_position);
+    }
     private void teamAutoDrive(int obj_location){
 
         //sleep(3000);
@@ -371,6 +402,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         } else {
             sleep(1600);
         }
+        turnOff();
         if (team_object_position == 1) {
             moveParallelToRight(1200);
             //sleep(1200);
@@ -544,6 +576,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         rightBackDrive.setPower((1)* power);
         leftBackDrive.setPower((-1)* power);
         sleep(sl_sec);
+        turnOff();
     }
     /**
      * Initialize the AprilTag processor.
@@ -567,7 +600,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
                     .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
                     .addProcessors(tfod, aprilTag)
                     .build();
-            setManualExposure(11, 250);
+            setManualExposure(20, 250);
         } else {
             visionPortal = new VisionPortal.Builder()
                     .setCamera(BuiltinCameraDirection.BACK)
@@ -806,5 +839,50 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
             sleep(250);   // optional pause after each move.
         }
     }
+
+    public void dropPixel(){
+        armServo.setPosition(arm_end_position);
+        sleep(1000);
+        clawServo.setPosition(claw_end_position);
+        sleep(100);
+    }
+    public void testClawServo(){
+
+        telemetry.addData(">", "Inside Claw Test");
+        telemetry.update();
+        sleep(2000);
+        while(opModeIsActive()) {
+            // slew the servo, according to the rampUp (direction) variable.
+            if (rampUp) {
+                // Keep stepping up until we hit the max value.
+                position += INCREMENT;
+                if (position >= MAX_POS) {
+                    position = MAX_POS;
+                    rampUp = !rampUp;   // Switch ramp direction
+                }
+            } else {
+                // Keep stepping down until we hit the min value.
+                position -= INCREMENT;
+                if (position <= MIN_POS) {
+                    position = MIN_POS;
+                    rampUp = !rampUp;  // Switch ramp direction
+                }
+            }
+
+            // Display the current value
+            telemetry.addData("Servo Position", "%5.2f", position);
+            telemetry.addData(">", "Press Stop to end test.");
+            telemetry.update();
+            sleep(2000);
+            // Set the servo to the new position and pause;
+            clawServo.setPosition(position);
+            sleep(CYCLE_MS);
+            idle();
+        }
+            // Signal done;
+        telemetry.addData(">", "Done");
+        telemetry.update();
+    }
+
 
 }
