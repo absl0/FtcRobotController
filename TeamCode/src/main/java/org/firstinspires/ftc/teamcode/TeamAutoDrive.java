@@ -29,13 +29,18 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+//import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+//import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+//import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
@@ -83,23 +88,19 @@ import java.util.concurrent.TimeUnit;
  *
  */
 
-@Autonomous(name="Team - BLUE Left Auto", group = "Concept")
+
 //@Disabled
-public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
+public class TeamAutoDrive extends Thread
 {
+    private HardwareMap hardwareMap;
+    private Telemetry telemetry;
+    private Gamepad gamepad1;
     private TfodProcessor tfod;
     private ElapsedTime runtime = new ElapsedTime();
 
-    // Declaration for Servo motor variables
-    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
-    static final int    CYCLE_MS    =   50;     // period of each cycle
-    static final double MAX_POS     =  0.1;     // Maximum rotational position
-    static final double MIN_POS     =  0.0;     // Minimum rotational position
-
     // Define class members
     Servo armServo, clawServo;
-    double  position = (MAX_POS - MIN_POS) / 2; // Start at halfway position
-    boolean rampUp = true;
+
     double arm_start_position = .01;
     double claw_start_position = -1;
 
@@ -119,9 +120,6 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     DRIVE_SPEED             = 0.6;
-    static final double     TURN_SPEED              = 0.5;
-
 
     private static final String TFOD_MODEL_ASSET = "TeamPropAbs0.tflite";//"MyModelStoredAsAsset.tflite";
     // TFOD_MODEL_FILE points to a model file stored onboard the Robot Controller's storage,
@@ -157,38 +155,14 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
 
-    @Override public void runOpMode()
-    {
-        // Initialize the robot motors and settings
+    TeamAutoDrive(HardwareMap map, Telemetry tel, Gamepad pad){
+        gamepad1 = pad;
+        hardwareMap = map;
+        telemetry = tel;
         initRobotSettings();
-
-        //if (USE_WEBCAM)
-          //  setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
-
-        // Wait for driver to press start
-        telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
-        telemetry.addData(">", "Touch Play to start OpMode");
-        telemetry.update();
-        waitForStart();
-
-        while (opModeIsActive())
-        {
-            //targetFound = false;
-            desiredTag  = null;
-            int obj_location = teamObjectDetectionTfod();
-            //drive to team object
-            teamBlueAutoDrive(obj_location);
-            //sleep for some time to give camera time to detect april tag
-            sleep(1000);
-            //drive to April Tag
-            driveToTeamBlueAprilTag(obj_location);
-            //sleep(1000);
-            dropPixel();
-            break;
-        }
     }
 
-    private void initRobotSettings(){
+    public void initRobotSettings(){
 
         // initialize TFOD
         initTfod();
@@ -216,99 +190,15 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
 
 
         clawServo.setPosition(claw_start_position);
-        sleep(2000);
+        try {
+            sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         armServo.setPosition(arm_start_position);
     }
-    private void teamBlueAutoDrive(int obj_location){
 
-        //sleep(3000);
-        // Apply desired axes motions to the drivetrain.
-        //drive = 0.13;
-        //moveRobot(drive, 0.0, 0.0);
-        //moveForward(.13);
-        // to to team object
-        int team_object_position = obj_location; // 2 - Center, 1 left and 3 right
-        float team_object_distance = 28;
-        telemetry.addData("Auto - move to team object","Drive %5.2f inches ", team_object_distance);
-        telemetry.update();
-        //sleep(1000);
-        driveRobot(DRIVE_SPEED,  team_object_distance,  team_object_distance, 4.0);  // S1: Forward 24 Inches with 5 Sec timeout
-        float turn_distance = 26;
-        float forward_distance = 6;
-        float reverse_distance = 10;
-        // Decide what to do based on position
-        // if center then put pixel next to team object, go back 2 inch and turn left
-        // if left then turn left, move forward 2 inches, put pixel next to team object, move back 2 inches, move left 8 inches
-        // if right then turn right, move forward 2 inches, put pixel next to team object, move back 2 inches, turn 180 degrees
-        if (team_object_position == 2) {
-            // if team object is in center
-            driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 3.0);
-            //move back and leave the pixel
-            telemetry.addData("Auto - drop  team object", "Drive back %5.2f inches ", reverse_distance);
-            telemetry.update();
-            //sleep(1000);
-            driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 3.0);  // S1: Forward 24 Inches with 5 Sec timeout
-            // turn left towards the board
-            telemetry.addData("Auto - turn left","turn left %5.2f inches ", turn_distance);
-            telemetry.update();
-            //sleep(1000);
-            driveRobot(TURN_SPEED,   -turn_distance, turn_distance, 4.0);
-        } else if (team_object_position == 1){
-            // if team object position is left
-            // turn left towards the board
-            telemetry.addData("Auto - turn left","turn left %5.2f inches ", turn_distance);
-            telemetry.update();
-            moveParallelToRight(400);
-            //sleep(400);
-            //sleep(1000);
-            driveRobot(TURN_SPEED,   -turn_distance, turn_distance, 3.0);
-            //move forward and drop the pixel
-            telemetry.addData("Auto - drop  team object", "Drive forward %5.2f inches ", reverse_distance);
-            telemetry.update();
-            //sleep(1000);
-            driveRobot(DRIVE_SPEED, forward_distance+2, forward_distance+2, 3.0);
-            //move back
-            telemetry.addData("Auto - drive back", "Drive back %5.2f inches ", reverse_distance);
-            telemetry.update();
-            //sleep(1000);
-            driveRobot(DRIVE_SPEED, -reverse_distance+2, -reverse_distance+2, 2.0);
-            //sleep(1000);
-            moveParallelToLeft(1700);
-            //sleep(500);
-        } else if (team_object_position == 3){
-            // if team object position is right
-            // turn right towards the team object
-            telemetry.addData("Auto - turn right","turn right %5.2f inches ", turn_distance);
-            telemetry.update();
-            //sleep(1000);
-            driveRobot(TURN_SPEED,   turn_distance, -turn_distance, 3.0);
-            //move forward and drop the pixel
-            telemetry.addData("Auto - drop  team object", "Drive forward %5.2f inches ", reverse_distance);
-            telemetry.update();
-            //sleep(1000);
-            driveRobot(DRIVE_SPEED, forward_distance+1, forward_distance+1, 3.0);
-            //move back
-            telemetry.addData("Auto - drive back", "Drive back %5.2f inches ", reverse_distance);
-            telemetry.update();
-            //sleep(1000);
-            driveRobot(DRIVE_SPEED, -reverse_distance-2, -reverse_distance-2, 3.0);
-            // turn 180 degrees towards the team object
-            telemetry.addData("Auto - turn 180 degrees","turn right %5.2f inches ", turn_distance);
-            telemetry.update();
-            //sleep(1000);
-            driveRobot(TURN_SPEED,   (turn_distance+1)*2, -(turn_distance+1)*2, 6.0);
-        } else {
-            telemetry.addData("Not able  to find object"," object position %d ", team_object_position);
-            telemetry.update();
-            sleep(5000);
-            //moveParallelToLeft();
-            //driveRobot(DRIVE_SPEED,   10, 0, 6.0);
-        }
-
-
-    }
-
-    private void driveToTeamBlueAprilTag(int team_object_position){
+    public void driveToTeamAprilTag(int team_object_position) {
 
         boolean targetFound     = false;    // Set to true when an AprilTag target is detected
         double  drive           = 0;        // Desired forward power/speed (-1 to +1)
@@ -375,19 +265,23 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         }
         telemetry.update();
         //sleep(5000);
-        moveRobotAprilTag(drive, 0, 0);
-        if (team_object_position == 1) {
-            sleep(1700);
-        } else  if (team_object_position == 3) {
-            sleep(1600);
-        } else {
-            sleep(1600);
+        moveRobotUsingAprilTag(drive, 0, 0);
+        try {
+            if (DESIRED_TAG_ID == 1) {
+                sleep(1700);
+            } else  if (DESIRED_TAG_ID == 3) {
+                sleep(1600);
+            } else {
+                sleep(1600);
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
         turnRobotOff();
-        if (team_object_position == 1) {
+        if (DESIRED_TAG_ID == 1) {
             moveParallelToRight(1200);
             //sleep(1200);
-        } else if (team_object_position == 3) {
+        } else if (DESIRED_TAG_ID == 3) {
             moveParallelToRight(1200);
             //sleep(1200);
         }
@@ -396,7 +290,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
     /**
      * Add telemetry about TensorFlow Object Detection (TFOD) recognitions.
      */
-    private int teamObjectDetectionTfod() {
+    public int teamObjectDetectionTfod() throws InterruptedException {
         int location = -1; //  1 left and 2 - center and 3 - right
         double angle = 0;
         double x = -9999;
@@ -467,7 +361,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
      * <p>
      * Positive Yaw is counter-clockwise
      */
-    public void moveRobotAprilTag(double x, double y, double yaw) {
+    public void moveRobotUsingAprilTag(double x, double y, double yaw) {
         // Calculate wheel powers.
         double leftFrontPower    =  x -y -yaw;
         double rightFrontPower   =  x +y +yaw;
@@ -505,7 +399,11 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         rightFrontDrive.setPower((1) * power);
         rightBackDrive.setPower((-1)* power);
         leftBackDrive.setPower((1)* power);
-        sleep(sl_sec);
+        try {
+            sleep(sl_sec);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         turnRobotOff();
     }
 
@@ -515,7 +413,11 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         rightFrontDrive.setPower((-1) * power);
         rightBackDrive.setPower((1)* power);
         leftBackDrive.setPower((-1)* power);
-        sleep(sl_sec);
+        try {
+            sleep(sl_sec);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         turnRobotOff();
     }
     /**
@@ -540,7 +442,11 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
                     .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
                     .addProcessors(tfod, aprilTag)
                     .build();
-            setManualExposure(20, 250);
+            try {
+                setManualExposure(20, 250);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         } else {
             visionPortal = new VisionPortal.Builder()
                     .setCamera(BuiltinCameraDirection.BACK)
@@ -605,7 +511,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
      Manually set the camera gain and exposure.
      This can only be called AFTER calling initAprilTag(), and only works for Webcams;
     */
-    private void    setManualExposure(int exposureMS, int gain) {
+    private void    setManualExposure(int exposureMS, int gain) throws InterruptedException {
         // Wait for the camera to be open, then use the controls
 
         // telemetry.addData("Tryig to set exposure to",  "%7d :%7d", exposureMS, gain);
@@ -623,7 +529,8 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
             telemetry.addData("Camera", "Waiting");
             telemetry.update();
-            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+            //!isStopRequested() &&
+            while ((visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
                 sleep(20);
             }
             telemetry.addData("Camera", "Ready");
@@ -631,8 +538,8 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         }
 
         // Set camera controls unless we are stopping.
-        if (!isStopRequested())
-        {
+        //if (!isStopRequested())
+        //{
             ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
             if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
                 exposureControl.setMode(ExposureControl.Mode.Manual);
@@ -647,7 +554,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
                     exposureMS,
                     gain);
             telemetry.update();
-        }
+        //}
         sleep(200);
     }
 
@@ -684,7 +591,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         int newRightTarget;
 
         // Ensure that the OpMode is still active
-        if (opModeIsActive()) {
+        //if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
             newLeftTarget = (int)(leftInches * COUNTS_PER_INCH);
@@ -719,7 +626,8 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
             // always end the motion as soon as possible.
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() &&
+            //opModeIsActive() &&
+            while (
                     (runtime.seconds() < timeoutS) &&
                     (leftFrontDrive.isBusy() && rightFrontDrive.isBusy())) {
 
@@ -743,52 +651,24 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
             leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        try {
             sleep(250);   // optional pause after each move.
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+        //}
     }
 
     public void dropPixel(){
-        armServo.setPosition(arm_end_position);
-        sleep(1200);
-        clawServo.setPosition(claw_end_position);
-        sleep(600);
-    }
-    public void testClawServo(){
+        try {
+            armServo.setPosition(arm_end_position);
+            sleep(1200);
 
-        telemetry.addData(">", "Inside Claw Test");
-        telemetry.update();
-        sleep(2000);
-        while(opModeIsActive()) {
-            // slew the servo, according to the rampUp (direction) variable.
-            if (rampUp) {
-                // Keep stepping up until we hit the max value.
-                position += INCREMENT;
-                if (position >= MAX_POS) {
-                    position = MAX_POS;
-                    rampUp = !rampUp;   // Switch ramp direction
-                }
-            } else {
-                // Keep stepping down until we hit the min value.
-                position -= INCREMENT;
-                if (position <= MIN_POS) {
-                    position = MIN_POS;
-                    rampUp = !rampUp;  // Switch ramp direction
-                }
-            }
-
-            // Display the current value
-            telemetry.addData("Servo Position", "%5.2f", position);
-            telemetry.addData(">", "Press Stop to end test.");
-            telemetry.update();
-            sleep(2000);
-            // Set the servo to the new position and pause;
-            clawServo.setPosition(position);
-            sleep(CYCLE_MS);
-            idle();
+            clawServo.setPosition(claw_end_position);
+            sleep(600);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-            // Signal done;
-        telemetry.addData(">", "Done");
-        telemetry.update();
     }
 
 }
