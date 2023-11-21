@@ -226,7 +226,7 @@ public class TeamAutoDrive extends Thread
                 telemetry.addData("Found Tag", "location %d", DESIRED_TAG_ID);
                 break;  // don't look any further.
             } else {
-                telemetry.addData("Unknown Target", "Tag ID %d is not in TagLibrary\n", detection.id);
+                telemetry.addData("Unknown Target", "Tag ID %d is not in TagLibrary, found %d\n", DESIRED_TAG_ID, detection.id);
             }
         }
 
@@ -267,9 +267,9 @@ public class TeamAutoDrive extends Thread
         //sleep(5000);
         moveRobotUsingAprilTag(drive, 0, 0);
         try {
-            if (DESIRED_TAG_ID == 1) {
+            if (DESIRED_TAG_ID == 1 || DESIRED_TAG_ID == 6) {
                 sleep(1700);
-            } else  if (DESIRED_TAG_ID == 3) {
+            } else  if (DESIRED_TAG_ID == 3 || DESIRED_TAG_ID == 4) {
                 sleep(1600);
             } else {
                 sleep(1600);
@@ -283,6 +283,12 @@ public class TeamAutoDrive extends Thread
             //sleep(1200);
         } else if (DESIRED_TAG_ID == 3) {
             moveParallelToRight(1200);
+            //sleep(1200);
+        } else if (DESIRED_TAG_ID == 4) {
+            moveParallelToLeft(1200);
+            //sleep(1200);
+        } else if (DESIRED_TAG_ID == 6) {
+            moveParallelToLeft(1200);
             //sleep(1200);
         }
     }
