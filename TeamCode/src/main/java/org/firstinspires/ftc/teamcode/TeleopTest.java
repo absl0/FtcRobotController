@@ -123,7 +123,26 @@ public class TeleopTest extends LinearOpMode {
                 robot.pushPlane();
             }
 
+            /* Claw/Arm controls */
 
+            if (this.gamepad1.y == true) {
+                robot.pixGrab();
+            }
+            if (this.gamepad1.x == true) {
+                robot.pixRelease();
+            }
+            if (this.gamepad1.left_trigger > 0.5) {
+                robot.armPark();
+            }
+            if (this.gamepad1.right_trigger > 0.5) {
+                robot.armRdy();
+            }
+            if (this.gamepad1.left_bumper == true) {
+                robot.pixOnBackdrop();
+            }
+            if (this.gamepad1.right_bumper == true) {
+                robot.clawTest();
+            }
         };
     };
 }

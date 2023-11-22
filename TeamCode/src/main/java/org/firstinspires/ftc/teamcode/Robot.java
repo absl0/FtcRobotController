@@ -32,6 +32,8 @@ public class Robot extends Thread {
     private DcMotorEx Motor_BR;
     private DcMotorEx Motor_BL;
     private Servo planePusher;
+    private Servo clawServo;
+    private Servo armServo;
     private BNO055IMU imu;
     private Orientation     angles;
     private PIDController   pidRotate, pidDrive;
@@ -87,7 +89,8 @@ public class Robot extends Thread {
         Motor_BL = hardwareMap.get(DcMotorEx.class, "motor_bl");
 
         planePusher = hardwareMap.get(Servo.class, "planePusher");
-
+        clawServo   = hardwareMap.get(Servo.class, "clawServo");
+        armServo    = hardwareMap.get(Servo.class, "armServo");
        /*Motor_FR.setVelocityPIDFCoefficients(0.95, 0.095, 0, 9.5);
         Motor_FR.setPositionPIDFCoefficients(5.0);
 
@@ -856,6 +859,61 @@ public class Robot extends Thread {
         planePusher.setPosition(0.0);
     }
 
+    /* Grab the pixel */
+    public void pixGrab() {
+        clawServo.setPosition(0);
+    }
+
+    /* release the pixel */
+    public  void pixRelease(){
+        clawServo.setPosition(2.0);
+    }
+
+    /* stowed away inside, claw facing backwards */
+    public void armPark (){
+        armServo.setPosition(0);
+    }
+
+    /* pointing down */
+    public void armRdy (){
+        armServo.setPosition(1);
+    }
+
+    /* claw to face backdrop and release the pixel */
+    public void pixOnBackdrop () {
+        armServo.setPosition(0.7);
+        try {
+            sleep(1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        pixRelease();
+    }
+
+    /* just a test routine */
+    public void clawTest () {
+        armRdy();
+        pixGrab();
+        try {
+            sleep(2000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        armPark();
+        try {
+            sleep(2000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        moveForwardToPosition(1,24);
+        moveRightToPosition(1,23);
+        moveForwardToPosition(1, 17);
+        pixOnBackdrop();
+        try {
+            sleep(1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        moveBackwardToPosition(1,5);
+    }
 }
-
-
