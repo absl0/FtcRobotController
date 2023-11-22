@@ -17,14 +17,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
-public class TeleopTest extends LinearOpMode{
+public class TeleopTest extends LinearOpMode {
 
     @Override
     public void runOpMode()  {
-        Robot robot = new Robot (hardwareMap, telemetry);
+        Robot robot = new Robot(hardwareMap, telemetry);
         robot.isTeleOp = true;
 
-        telemetry.addData ("Status", "Initialized"); //Displays "Status: Initialized"
+        telemetry.addData("Status", "Initialized"); //Displays "Status: Initialized"
         telemetry.update();
         //Driver must press INIT and then ▶️
 
@@ -36,19 +36,26 @@ public class TeleopTest extends LinearOpMode{
 
             /********** GamePad 1 ****************/
             //Turning
-            if(this.gamepad1.left_stick_x < 0.5 && this.gamepad1.left_stick_x > -0.5){
+            if (this.gamepad1.left_stick_x < 0.5 && this.gamepad1.left_stick_x > -0.5) {
                 robot.turnOff();
             }
             if (this.gamepad1.left_stick_x > 0.5) {
-                robot.turnForTime(0.8, 10, false, -1 );
+                robot.turnForTime(0.8, 10, false, -1);
             }
 
             if (this.gamepad1.left_stick_x < -0.5) {
-                robot.turnForTime(0.8, 10, false, 1 );
+                robot.turnForTime(0.8, 10, false, 1);
+            }
+            if (gamepad1.left_stick_y < 0 == true) {
+                robot.moveForwardToPosition(10, 1);
+            }
+
+            if (gamepad1.left_stick_y > 0 == true) {
+                robot.moveBackwardForTime(100, 100, true);
             }
 
             // Moving
-            if(this.gamepad1.right_stick_x < 0.5 && this.gamepad1.right_stick_x > -0.5 && this.gamepad1.right_stick_y < 0.5 && this.gamepad1.right_stick_y > -0.5){
+            if (this.gamepad1.right_stick_x < 0.5 && this.gamepad1.right_stick_x > -0.5 && this.gamepad1.right_stick_y < 0.5 && this.gamepad1.right_stick_y > -0.5) {
                 robot.turnOff();
             }
             if (this.gamepad1.right_stick_y > 0.5) {
@@ -92,27 +99,27 @@ public class TeleopTest extends LinearOpMode{
                 robot.weakShot();
                 robot.stopIntake();
             }*/
-            if(this.gamepad1.dpad_left == false &&this.gamepad1.dpad_right == false && this.gamepad1.dpad_up == false && this.gamepad1.dpad_down == false){
+            if (this.gamepad1.dpad_left == false && this.gamepad1.dpad_right == false && this.gamepad1.dpad_up == false && this.gamepad1.dpad_down == false) {
                 robot.turnOff();
             }
 
-            if(this.gamepad1.dpad_left == true) {
+            if (this.gamepad1.dpad_left == true) {
                 robot.moveR(0.5, 10);
             }
 
-            if(this.gamepad1.dpad_right == true) {
+            if (this.gamepad1.dpad_right == true) {
                 robot.moveL(0.5, 10);
             }
 
-            if(this.gamepad1.dpad_up == true) {
-                robot.moveF( 0.5,10);
+            if (this.gamepad1.dpad_up == true) {
+                robot.moveF(0.5, 10);
             }
 
-            if(this.gamepad1.dpad_down == true) {
+            if (this.gamepad1.dpad_down == true) {
                 robot.moveB(0.5, 10);
             }
 
-            if (this.gamepad1.a == true){
+            if (this.gamepad1.a == true) {
                 robot.pushPlane();
             }
 
