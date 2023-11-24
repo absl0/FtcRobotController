@@ -102,12 +102,13 @@ public class TeamAutoDrive extends Thread
     Servo armServo, clawServo;
 
     double arm_start_position = .01;
-    double claw_start_position = -1;
+    double claw_start_position = 0;
 
     double arm_end_position = .70;
     double claw_end_position = 1;
+    double claw_increment = .20;
 
-
+    static final double     DRIVE_SPEED             = 0.6;
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
@@ -131,7 +132,7 @@ public class TeamAutoDrive extends Thread
             "Abs0",
     };
     // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 0.0; //  this is how close the camera should get to the target (inches)
+    final double DESIRED_DISTANCE = 6.5; //  this is how close the camera should get to the target (inches)
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
@@ -140,7 +141,7 @@ public class TeamAutoDrive extends Thread
     final double STRAFE_GAIN =  0.05 ;   // 0.015 Strafe Speed Control "Gain".  eg: Ramp up to 25% power at a 25 degree Yaw error.   (0.25 / 25.0)
     final double TURN_GAIN   =  0.008  ;   // 0.01  Turn Control "Gain".  eg: Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
 
-    final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
+    final double MAX_AUTO_SPEED = 0.8;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
 
@@ -204,7 +205,7 @@ public class TeamAutoDrive extends Thread
         double  drive           = 0;        // Desired forward power/speed (-1 to +1)
         double  strafe          = 0;        // Desired strafe power/speed (-1 to +1)
         double  turn            = 0;        // Desired turning power/speed (-1 to +1)
-
+        double  desired_range = 0;
         //set desired TAG ID depending on team object position
         DESIRED_TAG_ID = team_object_position;
 
@@ -245,12 +246,12 @@ public class TeamAutoDrive extends Thread
         //if (gamepad1.left_bumper && targetFound) {
         if (targetFound) {
             // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
-            double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
+            desired_range = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
             double  headingError    = desiredTag.ftcPose.bearing;
             double  yawError        = desiredTag.ftcPose.yaw;
 
             // Use the speed and turn "gains" to calculate how we want the robot to move.
-            drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+            drive  = Range.clip(desired_range * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
             turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
             strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
 
@@ -264,25 +265,35 @@ public class TeamAutoDrive extends Thread
             telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
         }
         telemetry.update();
-        //sleep(5000);
-        moveRobotUsingAprilTag(drive, 0, 0);
         try {
-            if (DESIRED_TAG_ID == 1 || DESIRED_TAG_ID == 6) {
-                sleep(1700);
-            } else  if (DESIRED_TAG_ID == 3 || DESIRED_TAG_ID == 4) {
-                sleep(1600);
-            } else {
-                sleep(1600);
-            }
+            sleep(1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        // use the encoder based drive function
+        driveRobot(DRIVE_SPEED, desired_range, desired_range, 6.0);
+        // use april tag based moveRobot function
+//        moveRobotUsingAprilTag(drive, 0, 0);
+//        try {
+//            if (DESIRED_TAG_ID == 1 || DESIRED_TAG_ID == 6) {
+//                sleep(1850);
+//            } else  if (DESIRED_TAG_ID == 3 || DESIRED_TAG_ID == 4) {
+//                sleep(1650);
+//            } else {
+//                sleep(1750);
+//            }
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         turnRobotOff();
         if (DESIRED_TAG_ID == 1) {
-            moveParallelToRight(1200);
+            moveParallelToRight(1000);
+            //sleep(1200);
+        } else if (DESIRED_TAG_ID == 2) {
+            moveParallelToRight(400);
             //sleep(1200);
         } else if (DESIRED_TAG_ID == 3) {
-            moveParallelToRight(1200);
+            moveParallelToRight(1500);
             //sleep(1200);
         } else if (DESIRED_TAG_ID == 4) {
             moveParallelToLeft(1200);
@@ -310,11 +321,16 @@ public class TeamAutoDrive extends Thread
         sleep(1000);
 
         // try again if we did not find object in first attempt
-        if (currentRecognitions.size() == 0) {
+        int repeat_count = 3;
+        while ( repeat_count > 0) {
             currentRecognitions = tfod.getRecognitions();
-            telemetry.addData("# Objects Detected on try 2", currentRecognitions.size());
+            telemetry.addData("# Objects Detected on next try", currentRecognitions.size());
             telemetry.update();
             sleep(1000);
+            if (currentRecognitions.size() > 0) {
+                break;
+            }
+            repeat_count--;
         }
         // Step through the list of recognitions and display info for each one.
         for (Recognition recognition : currentRecognitions) {
@@ -414,7 +430,7 @@ public class TeamAutoDrive extends Thread
     }
 
     public void moveParallelToRight(int sl_sec) {
-        double power = .20;
+        double power = .30;
         leftFrontDrive.setPower((1) * power);
         rightFrontDrive.setPower((-1) * power);
         rightBackDrive.setPower((1)* power);
@@ -449,7 +465,7 @@ public class TeamAutoDrive extends Thread
                     .addProcessors(tfod, aprilTag)
                     .build();
             try {
-                setManualExposure(20, 250);
+                setManualExposure(15, 250);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -606,9 +622,13 @@ public class TeamAutoDrive extends Thread
                     newLeftTarget,
                     newRightTarget);
             telemetry.update();
-            //sleep(500);
+//        try {
+//            sleep(2000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
 
-            leftFrontDrive.setTargetPosition(newLeftTarget);
+        leftFrontDrive.setTargetPosition(newLeftTarget);
             rightFrontDrive.setTargetPosition(newRightTarget);
             leftBackDrive.setTargetPosition(newLeftTarget);
             rightBackDrive.setTargetPosition(newRightTarget);
@@ -670,11 +690,20 @@ public class TeamAutoDrive extends Thread
             armServo.setPosition(arm_end_position);
             sleep(1200);
 
+//            double currentClawPos = claw_start_position;
+//            while (currentClawPos < claw_end_position) {
+//                clawServo.setPosition(currentClawPos);
+//                sleep(300);
+//                currentClawPos = currentClawPos + claw_increment;
+//            }
             clawServo.setPosition(claw_end_position);
-            sleep(600);
+            sleep(1200);
+            driveRobot(DRIVE_SPEED, -5, -5, 4.0);
+            sleep (500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
     }
 
 }
