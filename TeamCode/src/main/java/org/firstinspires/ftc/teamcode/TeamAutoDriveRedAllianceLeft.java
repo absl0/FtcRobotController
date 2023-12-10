@@ -136,6 +136,53 @@ public class TeamAutoDriveRedAllianceLeft extends LinearOpMode
         float turn_distance = 26;
         float forward_distance = 6;
         float reverse_distance = 10;
+        int new_object_position = -1;
+        if (obj_location == -1) {
+            // if object not found at start then try again
+            try {
+                new_object_position = tad.teamObjectDetectionTfod();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            if (new_object_position != -1) {
+                // object found at center place
+                team_object_position = 2;
+            } else {
+                // even after getting close not found object then turn right and try to find object again
+                tad.moveParallelToLeft(400);
+                //turn right
+                tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
+                // if object not found then try again
+                try {
+                    new_object_position = tad.teamObjectDetectionTfod();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                if (new_object_position != -1) {
+                    // object found at right place
+                    team_object_position = 3;
+                } else {
+                    // even after getting close and turning right object not found found then turn 180 degrees and try to find object again
+                    // it might be on left side
+                    // if object not found then try again after turning 180 degrees
+                    //tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
+                    //tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
+                    tad.driveRobot(TURN_SPEED, (turn_distance + 1) * 2, -(turn_distance + 1) * 2, 6.0);
+                    try {
+                        new_object_position = tad.teamObjectDetectionTfod();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if (new_object_position != -1) {
+                        team_object_position = 1;
+                    } else {
+                        telemetry.addData("Not able  to find object", " even from close position");
+                        telemetry.update();
+                        sleep(1000);
+                    }
+                }
+            }
+        }
         // Decide what to do based on position
         // if center then put pixel next to team object, go back 2 inch and turn left
         // if left then turn left, move forward 2 inches, put pixel next to team object, move back 2 inches, move left 8 inches
@@ -156,12 +203,14 @@ public class TeamAutoDriveRedAllianceLeft extends LinearOpMode
         } else if (team_object_position == 3){
             // if team object position is right
             // turn left towards the board
-            telemetry.addData("Auto - turn right","turn right %5.2f inches ", turn_distance);
-            telemetry.update();
-            tad.moveParallelToLeft(400);
-            //sleep(400);
-            //sleep(1000);
-            tad.driveRobot(TURN_SPEED,   turn_distance, -turn_distance, 3.0);
+            if (obj_location != -1) {
+                telemetry.addData("Auto - turn right", "turn right %5.2f inches ", turn_distance);
+                telemetry.update();
+                tad.moveParallelToLeft(400);
+                //sleep(400);
+                //sleep(1000);
+                tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
+            }
             //move forward and drop the pixel
             telemetry.addData("Auto - drop  team object", "Drive forward %5.2f inches ", reverse_distance);
             telemetry.update();
@@ -173,16 +222,20 @@ public class TeamAutoDriveRedAllianceLeft extends LinearOpMode
             //sleep(1000);
             tad.driveRobot(DRIVE_SPEED, -reverse_distance+2, -reverse_distance+2, 2.0);
             //sleep(1000);
-            tad.moveParallelToRight(1700);
+            tad.moveParallelToRight(1200);
             //sleep(500);
         } else if (team_object_position == 1){
             // if team object position is left
             // turn right towards the team object
-            telemetry.addData("Auto - turn left","turn left %5.2f inches ", turn_distance);
-            telemetry.update();
-            //sleep(1000);
-            tad.driveRobot(TURN_SPEED,   -turn_distance, turn_distance, 3.0);
-            //move forward and drop the pixel
+            if (obj_location != -1) {
+                telemetry.addData("Auto - turn left", "turn left %5.2f inches ", turn_distance);
+                telemetry.update();
+                // move little left before turning right
+                tad.moveParallelToRight(400);
+                //sleep(1000);
+                tad.driveRobot(TURN_SPEED, -turn_distance, turn_distance, 3.0);
+                //move forward and drop the pixel
+            }
             telemetry.addData("Auto - drop  team object", "Drive forward %5.2f inches ", reverse_distance);
             telemetry.update();
             //sleep(1000);
