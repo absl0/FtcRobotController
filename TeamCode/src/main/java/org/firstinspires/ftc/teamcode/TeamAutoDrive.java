@@ -33,6 +33,8 @@ package org.firstinspires.ftc.teamcode;
 //import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 //import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import static java.lang.Math.abs;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -97,18 +99,20 @@ public class TeamAutoDrive extends Thread
     private Gamepad gamepad1;
     private TfodProcessor tfod;
     private ElapsedTime runtime = new ElapsedTime();
+    public Robot robotInstance;// = new Robot(map, tel);
 
     // Define class members
     Servo armServo, clawServo;
 
-    double arm_start_position = .01;
+    double arm_start_position = 0;
     double claw_start_position = 0;
 
-    double arm_end_position = .70;
-    double claw_end_position = 1;
-    double claw_increment = .20;
+    double arm_end_position = .50;
+    double claw_end_position = .3;
+    double claw_increment = .05;
 
     static final double     DRIVE_SPEED             = 0.6;
+    static final double     TURN_SPEED              = 0.6;
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
@@ -132,16 +136,16 @@ public class TeamAutoDrive extends Thread
             "Abs0",
     };
     // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 6.5; //  this is how close the camera should get to the target (inches)
+    final double DESIRED_DISTANCE = 5; //  this is how close the camera should get to the target (inches)
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
     //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
     final double SPEED_GAIN  =  0.02  ;   //  Forward Speed Control "Gain". eg: Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
-    final double STRAFE_GAIN =  0.05 ;   // 0.015 Strafe Speed Control "Gain".  eg: Ramp up to 25% power at a 25 degree Yaw error.   (0.25 / 25.0)
-    final double TURN_GAIN   =  0.008  ;   // 0.01  Turn Control "Gain".  eg: Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+    final double STRAFE_GAIN =  0.004 ;   // 0.015 Strafe Speed Control "Gain".  eg: Ramp up to 25% power at a 25 degree Yaw error.   (0.25 / 25.0)
+    final double TURN_GAIN   =  0.005  ;   // 0.01  Turn Control "Gain".  eg: Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
 
-    final double MAX_AUTO_SPEED = 0.8;   //  Clip the approach speed to this max value (adjust for your robot)
+    final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
 
@@ -155,11 +159,12 @@ public class TeamAutoDrive extends Thread
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
-
+    private float turn_distance = 26;
     TeamAutoDrive(HardwareMap map, Telemetry tel, Gamepad pad){
         gamepad1 = pad;
         hardwareMap = map;
         telemetry = tel;
+        robotInstance = new Robot(map, tel);
         initRobotSettings();
     }
 
@@ -192,42 +197,25 @@ public class TeamAutoDrive extends Thread
 
         clawServo.setPosition(claw_start_position);
         try {
-            sleep(2000);
+            sleep(1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         armServo.setPosition(arm_start_position);
     }
-
-    public void driveToTeamAprilTag(int team_object_position) {
-
+    private boolean findAprilTag(int tag_id){
         boolean targetFound     = false;    // Set to true when an AprilTag target is detected
-        double  drive           = 0;        // Desired forward power/speed (-1 to +1)
-        double  strafe          = 0;        // Desired strafe power/speed (-1 to +1)
-        double  turn            = 0;        // Desired turning power/speed (-1 to +1)
-        double  desired_range = 0;
-        //set desired TAG ID depending on team object position
-        DESIRED_TAG_ID = team_object_position;
-
-        // drive towards April Tag - hardcoded distance
-        // float april_tag_distance = 42;
-        // telemetry.addData("Auto - drive to April Tag","Drive back %5.2f inches to %d ", april_tag_distance, DESIRED_TAG_ID);
-        // telemetry.update();
-        // sleep(1000);
-        // driveRobot(DRIVE_SPEED,  april_tag_distance,  april_tag_distance, 6.0);
-
-        // drive using april tag code
         // Step through the list of detected tags and look for a matching tag
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         for (AprilTagDetection detection : currentDetections) {
             if ((detection.metadata != null) &&
-                    ((DESIRED_TAG_ID < 0) || (detection.id == DESIRED_TAG_ID))  ){
+                    ((tag_id < 0) || (detection.id == tag_id))  ){
                 targetFound = true;
                 desiredTag = detection;
-                telemetry.addData("Found Tag", "location %d", DESIRED_TAG_ID);
+                telemetry.addData("Found Tag", "location %d", tag_id);
                 break;  // don't look any further.
             } else {
-                telemetry.addData("Unknown Target", "Tag ID %d is not in TagLibrary, found %d\n", DESIRED_TAG_ID, detection.id);
+                telemetry.addData("Unknown Target", "Tag ID %d is not in TagLibrary, found %d\n", tag_id, detection.id);
             }
         }
 
@@ -238,70 +226,94 @@ public class TeamAutoDrive extends Thread
             telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
             telemetry.addData("Bearing","%3.0f degrees", desiredTag.ftcPose.bearing);
             telemetry.addData("Yaw","%3.0f degrees", desiredTag.ftcPose.yaw);
+            telemetry.addData("X",  "%5.1f inches", desiredTag.ftcPose.x);
+            telemetry.addData("Y","%3.0f degrees", desiredTag.ftcPose.y);
+            telemetry.addData("Z","%3.0f degrees", desiredTag.ftcPose.z);
         } else {
             telemetry.addData(">","Drive using joysticks to find valid target\n");
         }
-
-        // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
-        //if (gamepad1.left_bumper && targetFound) {
-        if (targetFound) {
-            // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
-            desired_range = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
-            double  headingError    = desiredTag.ftcPose.bearing;
-            double  yawError        = desiredTag.ftcPose.yaw;
-
-            // Use the speed and turn "gains" to calculate how we want the robot to move.
-            drive  = Range.clip(desired_range * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-            turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
-            strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
-
-            telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
-        } else {
-
-            // drive using manual POV Joystick mode.  Slow things down to make the robot more controlable.
-            drive  = -gamepad1.left_stick_y  / 2.0;  // Reduce drive rate to 50%.
-            strafe = -gamepad1.left_stick_x  / 2.0;  // Reduce strafe rate to 50%.
-            turn   = -gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
-            telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
-        }
         telemetry.update();
         try {
-            sleep(1000);
+            sleep(2000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        // use the encoder based drive function
-        driveRobot(DRIVE_SPEED, desired_range, desired_range, 6.0);
-        // use april tag based moveRobot function
-//        moveRobotUsingAprilTag(drive, 0, 0);
-//        try {
-//            if (DESIRED_TAG_ID == 1 || DESIRED_TAG_ID == 6) {
-//                sleep(1850);
-//            } else  if (DESIRED_TAG_ID == 3 || DESIRED_TAG_ID == 4) {
-//                sleep(1650);
-//            } else {
-//                sleep(1750);
-//            }
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-        turnRobotOff();
-        if (DESIRED_TAG_ID == 1) {
-            moveParallelToRight(1000);
-            //sleep(1200);
-        } else if (DESIRED_TAG_ID == 2) {
-            moveParallelToRight(400);
-            //sleep(1200);
-        } else if (DESIRED_TAG_ID == 3) {
-            moveParallelToRight(1500);
-            //sleep(1200);
-        } else if (DESIRED_TAG_ID == 4) {
-            moveParallelToLeft(1200);
-            //sleep(1200);
-        } else if (DESIRED_TAG_ID == 6) {
-            moveParallelToLeft(1200);
-            //sleep(1200);
+        return targetFound;
+    }
+    public void driveToTeamAprilTag(int team_object_position) {
+
+        boolean targetFound     = false;    // Set to true when an AprilTag target is detected
+        double  desired_range = 0;
+        double wait_time = 0.0;
+        //set desired TAG ID depending on team object position
+        DESIRED_TAG_ID = team_object_position;
+        targetFound = findAprilTag(DESIRED_TAG_ID);
+        // drive towards April Tag - hardcoded distance
+        // float april_tag_distance = 42;
+        // telemetry.addData("Auto - drive to April Tag","Drive back %5.2f inches to %d ", april_tag_distance, DESIRED_TAG_ID);
+        // telemetry.update();
+        // sleep(1000);
+        // driveRobot(DRIVE_SPEED,  april_tag_distance,  april_tag_distance, 6.0);
+
+        // drive using april tag code
+        // turn the robot if the april tag is at more than 10 degrees
+        if (targetFound && (Math.abs(desiredTag.ftcPose.yaw) > 3)) {
+            telemetry.addData("Fixing the turn","correcting the turn %5.2f\n", desiredTag.ftcPose.yaw);
+            telemetry.update();
+            //turn robot by yaw degrees and make it straight
+            double temp_turn_distrance = turn_distance * (desiredTag.ftcPose.yaw/90);
+            driveRobot(TURN_SPEED, -temp_turn_distrance, temp_turn_distrance, 3.0);
+            wait_time = 1.5 * temp_turn_distrance * 90;
+            if (temp_turn_distrance > 0) {
+                moveParallelToRight((int) wait_time);
+            } else {
+                moveParallelToLeft((int) -wait_time);
+            }
+            targetFound = findAprilTag(DESIRED_TAG_ID);
         }
+        // drive closer to april tag
+        if (targetFound) {
+            double x_distrance = desiredTag.ftcPose.x;
+            // if target found go closer and in-front of april tag
+            // use the encoder based drive function
+            desired_range = (desiredTag.ftcPose.y - 3 * DESIRED_DISTANCE);
+            driveRobot(DRIVE_SPEED, desired_range, desired_range, 6.0);
+            // use april tag based moveRobot function
+            //  moveRobotUsingAprilTag(targetFound) // (drive, strafe, turn);
+            turnRobotOff();
+
+            if (x_distrance > 0) {
+                wait_time = x_distrance * 90;
+                moveParallelToRight((int) wait_time);
+            } else {
+                wait_time = -x_distrance * 90;
+                moveParallelToLeft((int) wait_time);
+            }
+        }
+        try {
+            sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        // Scan for April Tag again to be sure that you are closer
+        targetFound = findAprilTag(DESIRED_TAG_ID);
+        moveRobotUsingAprilTag(targetFound);
+//        if (DESIRED_TAG_ID == 1) {
+//            moveParallelToRight(1000);
+//            //sleep(1200);
+//        } else if (DESIRED_TAG_ID == 2) {
+//            moveParallelToRight(400);
+//            //sleep(1200);
+//        } else if (DESIRED_TAG_ID == 3) {
+//            moveParallelToRight(1000);
+//            //sleep(1200);
+//        } else if (DESIRED_TAG_ID == 4) {
+//            moveParallelToLeft(1000);
+//            //sleep(1200);
+//        } else if (DESIRED_TAG_ID == 6) {
+//            moveParallelToLeft(1000);
+//            //sleep(1200);
+//        }
     }
 
     /**
@@ -368,7 +380,7 @@ public class TeamAutoDrive extends Thread
             }
             telemetry.addData("Team element is at location",  "%s", location);
             telemetry.update();
-            sleep(2000);
+            sleep(500);
         } // end of if
         telemetry.update();
         return location;
@@ -383,17 +395,57 @@ public class TeamAutoDrive extends Thread
      * <p>
      * Positive Yaw is counter-clockwise
      */
-    public void moveRobotUsingAprilTag(double x, double y, double yaw) {
+    public void moveRobotUsingAprilTag(boolean targetFound) {
+        double  drive           = 0;        // Desired forward power/speed (-1 to +1)
+        double  strafe          = 0;        // Desired strafe power/speed (-1 to +1)
+        double  turn            = 0;        // Desired turning power/speed (-1 to +1)
+        double  range = 0;
+        // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
+        //if (gamepad1.left_bumper && targetFound) {
+        if (targetFound) {
+            // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
+            range = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
+            double  headingError    = desiredTag.ftcPose.bearing;
+            double  yawError        = desiredTag.ftcPose.yaw;
+
+            // Use the speed and turn "gains" to calculate how we want the robot to move.
+            drive  = Range.clip(range * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+            turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
+            strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+
+            telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
+        } else {
+
+            // drive using manual POV Joystick mode.  Slow things down to make the robot more controlable.
+            drive  = -gamepad1.left_stick_y  / 2.0;  // Reduce drive rate to 50%.
+            strafe = -gamepad1.left_stick_x  / 2.0;  // Reduce strafe rate to 50%.
+            turn   = -gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
+            telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
+        }
+
+
         // Calculate wheel powers.
-        double leftFrontPower    =  x -y -yaw;
-        double rightFrontPower   =  x +y +yaw;
-        double leftBackPower     =  x +y -yaw;
-        double rightBackPower    =  x -y +yaw;
+        double leftFrontPower    =  drive - strafe - turn;
+        double rightFrontPower   =  drive + strafe + turn;
+        double leftBackPower     =  drive + strafe -turn;
+        double rightBackPower    =  drive - strafe + turn;
+        int sleep_time = 0;
+        sleep_time = (int) ((range * 25)/ (1 - 2 * (MAX_AUTO_SPEED + 0.05 - (rightFrontPower + leftFrontPower)/2)));
+
+        telemetry.addData("Auto","Left Front %5.2f, Right Front %5.2f, Left Back %5.2f, , Right Back %5.2f ", leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
+        telemetry.addData("Sleep time","time %5d and range %5.2f", sleep_time, range );
+        telemetry.update();
+        try {
+            sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
 
         // Normalize wheel powers to be less than 1.0
-        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-        max = Math.max(max, Math.abs(leftBackPower));
-        max = Math.max(max, Math.abs(rightBackPower));
+        double max = Math.max(abs(leftFrontPower), abs(rightFrontPower));
+        max = Math.max(max, abs(leftBackPower));
+        max = Math.max(max, abs(rightBackPower));
 
         if (max > 1.0) {
             leftFrontPower /= max;
@@ -407,6 +459,13 @@ public class TeamAutoDrive extends Thread
         rightFrontDrive.setPower(rightFrontPower);
         leftBackDrive.setPower(leftBackPower);
         rightBackDrive.setPower(rightBackPower);
+
+        try {
+            sleep(sleep_time);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        turnRobotOff();
     }
     public void turnRobotOff(){
         leftFrontDrive.setPower(0);
@@ -416,7 +475,14 @@ public class TeamAutoDrive extends Thread
     }
 
     public void moveParallelToLeft(int sl_sec) {
-        double power = .20;
+        telemetry.addData("Driving","to left for  %5d ", sl_sec);
+        telemetry.update();
+//        try {
+//            sleep(2000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+        double power = .30;
         leftFrontDrive.setPower((-1) * power);
         rightFrontDrive.setPower((1) * power);
         rightBackDrive.setPower((-1)* power);
@@ -430,6 +496,13 @@ public class TeamAutoDrive extends Thread
     }
 
     public void moveParallelToRight(int sl_sec) {
+        telemetry.addData("Driving","to Right for  %5d ", sl_sec);
+        telemetry.update();
+//        try {
+//            sleep(2000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         double power = .30;
         leftFrontDrive.setPower((1) * power);
         rightFrontDrive.setPower((-1) * power);
@@ -641,10 +714,10 @@ public class TeamAutoDrive extends Thread
 
             // reset the timeout time and start motion.
             runtime.reset();
-            leftFrontDrive.setPower(Math.abs(speed));
-            rightFrontDrive.setPower(Math.abs(speed));
-            leftBackDrive.setPower(Math.abs(speed));
-            rightBackDrive.setPower(Math.abs(speed));
+            leftFrontDrive.setPower(abs(speed));
+            rightFrontDrive.setPower(abs(speed));
+            leftBackDrive.setPower(abs(speed));
+            rightBackDrive.setPower(abs(speed));
 
             // keep looping while we are still active, and there is time left, and both motors are running.
             // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
@@ -677,6 +750,11 @@ public class TeamAutoDrive extends Thread
             leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+//        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         try {
             sleep(250);   // optional pause after each move.
         } catch (InterruptedException e) {
@@ -687,19 +765,35 @@ public class TeamAutoDrive extends Thread
 
     public void dropPixel(){
         try {
-            armServo.setPosition(arm_end_position);
-            sleep(1200);
+            double currentArmPos = arm_start_position;
+            while (currentArmPos <= arm_end_position) {
+                armServo.setPosition(currentArmPos);
+                sleep(150);
+                telemetry.addData("Arm Position",  "Current %5.2f End:%5.2f",
+                        currentArmPos,
+                        arm_end_position);
+                telemetry.update();
+                //sleep(1000);
+                currentArmPos = currentArmPos + 0.10;
+            }
+            //armServo.setPosition(arm_end_position);
+            //sleep(1200);
 
-//            double currentClawPos = claw_start_position;
-//            while (currentClawPos < claw_end_position) {
-//                clawServo.setPosition(currentClawPos);
-//                sleep(300);
-//                currentClawPos = currentClawPos + claw_increment;
-//            }
-            clawServo.setPosition(claw_end_position);
-            sleep(1200);
-            driveRobot(DRIVE_SPEED, -5, -5, 4.0);
-            sleep (500);
+            double currentClawPos = claw_start_position;
+            while (currentClawPos <= claw_end_position) {
+                clawServo.setPosition(currentClawPos);
+                sleep(100);
+                telemetry.addData("Claw Position",  "Current %5.2f End:%5.2f",
+                        currentClawPos,
+                        claw_end_position);
+                telemetry.update();
+                //sleep(1000);
+                currentClawPos = currentClawPos + claw_increment;
+            }
+            //clawServo.setPosition(claw_end_position);
+            sleep(1000);
+            driveRobot(DRIVE_SPEED/2, -5, -5, 2.0);
+            //sleep (500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
