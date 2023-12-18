@@ -104,12 +104,12 @@ public class TeamAutoDrive extends Thread
     // Define class members
     Servo armServo, clawServo;
 
-    double arm_start_position = 0;
-    double claw_start_position = 0;
+    double arm_start_position = 0.1;
+    double claw_start_position = -1;
 
-    double arm_end_position = .50;
-    double claw_end_position = .3;
-    double claw_increment = .05;
+    double arm_end_position = .70;
+    double claw_end_position = .2;
+    double claw_increment = .1;
 
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.6;
@@ -129,14 +129,14 @@ public class TeamAutoDrive extends Thread
     private static final String TFOD_MODEL_ASSET = "TeamPropAbs0.tflite";//"MyModelStoredAsAsset.tflite";
     // TFOD_MODEL_FILE points to a model file stored onboard the Robot Controller's storage,
     // this is used when uploading models directly to the RC using the model upload interface.
-    private static final String TFOD_MODEL_FILE = "TeamPropAbs0.tflite";//"/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
+    private String TFOD_MODEL_FILE = "TeamPropAbs0.tflite";//"/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
     // Define the labels recognized in the model for TFOD (must be in training order!)
     private static final String[] LABELS = {
-            // "Pixel",
             "Abs0",
+            "RedAbs0",
     };
     // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 5; //  this is how close the camera should get to the target (inches)
+    final double DESIRED_DISTANCE = 4.5; //  this is how close the camera should get to the target (inches)
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
@@ -160,11 +160,12 @@ public class TeamAutoDrive extends Thread
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
     private float turn_distance = 26;
-    TeamAutoDrive(HardwareMap map, Telemetry tel, Gamepad pad){
+    TeamAutoDrive(HardwareMap map, Telemetry tel, Gamepad pad, String tfod_model){
         gamepad1 = pad;
         hardwareMap = map;
         telemetry = tel;
         robotInstance = new Robot(map, tel);
+        TFOD_MODEL_FILE = tfod_model;
         initRobotSettings();
     }
 
@@ -357,7 +358,7 @@ public class TeamAutoDrive extends Thread
             telemetry.addData("- Position", "%.0f / %.0f", x, y);
             telemetry.addData("- Angle", ".0f", angle);
             telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
-            if (object_label.equals("Abs0")){
+            if (object_label.equals("Abs0") || object_label.equals("RedAbs0")){
                 telemetry.addData("Found white pixel, breaking","%s", object_label);
                 found_pixel = true;
                 break;
@@ -555,6 +556,8 @@ public class TeamAutoDrive extends Thread
      */
     private void initTfod() {
 
+        telemetry.addData("TFOD Model", "is %s", TFOD_MODEL_FILE);
+        telemetry.update();
         // Create the TensorFlow processor by using a builder.
         tfod = new TfodProcessor.Builder()
 
@@ -776,7 +779,7 @@ public class TeamAutoDrive extends Thread
                 //sleep(1000);
                 currentArmPos = currentArmPos + 0.10;
             }
-            //armServo.setPosition(arm_end_position);
+            armServo.setPosition(arm_end_position);
             //sleep(1200);
 
             double currentClawPos = claw_start_position;
