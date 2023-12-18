@@ -76,12 +76,12 @@ public class TeamAutoDriveRedAllianceLeft extends LinearOpMode
 
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
-
+    private static final String TFOD_MODEL_FILE = "TeamPropAbs0RED.tflite";//"/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
 
     @Override public void runOpMode()
     {
-        tad = new TeamAutoDrive(hardwareMap, telemetry, gamepad1);
+        tad = new TeamAutoDrive(hardwareMap, telemetry, gamepad1, TFOD_MODEL_FILE);
         // Initialize the robot motors and settings
         // tad.initRobotSettings();
         //Robot robot = new Robot(hardwareMap, telemetry);
