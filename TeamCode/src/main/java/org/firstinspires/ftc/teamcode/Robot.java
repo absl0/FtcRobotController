@@ -25,12 +25,15 @@ public class Robot extends Thread {
     //private static final int TICKS_PER_ROTATION = 1440; //Tetrix motor specific
     private static final double TICKS_PER_ROTATION = 537.7; //Gobilda 5203 312 RMP motor specific
     private static final double WHEEL_DIAMETER = 3.78; //Wheel diameter in inches
+    private static final double LA_EXPAND_POWER =  0.80 ; // Run actuator motor up at 80% power
+    private static final double LA_CONTRACT_POWER  = -0.80 ; // Run actuator motor down at -80% power
     private String TAG = "FTC";
 
     private DcMotorEx Motor_FL;
     private DcMotorEx Motor_FR;
     private DcMotorEx Motor_BR;
     private DcMotorEx Motor_BL;
+    private DcMotorEx Motor_LA;
     private Servo planePusher;
     private Servo clawServo;
     private Servo armServo;
@@ -87,6 +90,7 @@ public class Robot extends Thread {
         Motor_FR = hardwareMap.get(DcMotorEx.class, "motor_fr");
         Motor_BR = hardwareMap.get(DcMotorEx.class, "motor_br");
         Motor_BL = hardwareMap.get(DcMotorEx.class, "motor_bl");
+        Motor_LA = hardwareMap.get(DcMotorEx.class, "LinearActuator");
 
         planePusher = hardwareMap.get(Servo.class, "planePusher");
         clawServo   = hardwareMap.get(Servo.class, "clawServo");
@@ -915,5 +919,20 @@ public class Robot extends Thread {
             e.printStackTrace();
         }
         moveBackwardToPosition(1,5);
+    }
+
+    public void expandLinearActuator () {
+        Motor_LA.setPower(LA_EXPAND_POWER);
+        Log.i(TAG, "Linear Actuator Expanding");
+    }
+
+    public void contractLinearActuator () {
+        Motor_LA.setPower(LA_CONTRACT_POWER);
+        Log.i(TAG, "Linear Actuator Contracting");
+    }
+
+    public void stopLinearActuator () {
+        Motor_LA.setPower(0.0);
+        Log.i(TAG, "Linear Actuator Stopped");
     }
 }

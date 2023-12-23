@@ -143,6 +143,16 @@ public class TeleopTest extends LinearOpMode {
             if (this.gamepad1.right_bumper == true) {
                 robot.clawTest();
             }
+
+            // Use gamepad buttons to move the linear actuator
+            // expand (Left Bumper) and contracts (Right Bumper)
+            if (this.gamepad1.left_bumper) {
+                robot.expandLinearActuator();
+            } else if (this.gamepad1.right_bumper) {
+                robot.contractLinearActuator();
+            } else {
+                robot.stopLinearActuator();
+            }
         };
     };
 }
