@@ -866,7 +866,7 @@ public class Robot extends Thread {
 
     /* release the pixel */
     public  void pixRelease(){
-        clawServo.setPosition(2.0);
+        clawServo.setPosition(0.4);
     }
 
     /* stowed away inside, claw facing backwards */

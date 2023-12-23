@@ -198,7 +198,7 @@ public class TeamAutoDrive extends Thread
 
         clawServo.setPosition(claw_start_position);
         try {
-            sleep(1000);
+            sleep(700);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -235,7 +235,7 @@ public class TeamAutoDrive extends Thread
         }
         telemetry.update();
         try {
-            sleep(2000);
+            sleep(1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -327,23 +327,25 @@ public class TeamAutoDrive extends Thread
         double y = -9999;
         boolean found_pixel = false;
         String object_label = "";
-        sleep(1000);
+        //sleep(1000);
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
         telemetry.update();
-        sleep(1000);
+        sleep(500);
 
         // try again if we did not find object in first attempt
         int repeat_count = 3;
-        while ( repeat_count > 0) {
-            currentRecognitions = tfod.getRecognitions();
-            telemetry.addData("# Objects Detected on next try", currentRecognitions.size());
-            telemetry.update();
-            sleep(1000);
-            if (currentRecognitions.size() > 0) {
-                break;
+        if (currentRecognitions.size() == 0) {
+            while (repeat_count > 0) {
+                currentRecognitions = tfod.getRecognitions();
+                telemetry.addData("# Objects Detected on next try", currentRecognitions.size());
+                telemetry.update();
+                sleep(500);
+                if (currentRecognitions.size() > 0) {
+                    break;
+                }
+                repeat_count--;
             }
-            repeat_count--;
         }
         // Step through the list of recognitions and display info for each one.
         for (Recognition recognition : currentRecognitions) {
@@ -653,7 +655,7 @@ public class TeamAutoDrive extends Thread
                     gain);
             telemetry.update();
         //}
-        sleep(200);
+        sleep(100);
     }
 
     /*
