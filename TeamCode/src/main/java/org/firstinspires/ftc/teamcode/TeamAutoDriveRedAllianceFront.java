@@ -79,7 +79,10 @@ public class TeamAutoDriveRedAllianceFront extends LinearOpMode
     static final double     TURN_SPEED              = 0.5;
     private static final String TFOD_MODEL_FILE = "TeamPropAbs0RED.tflite";//"/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
-
+    private float turn_distance = 26;
+    private float forward_distance = 6;
+    private float reverse_distance = 10;
+    private float team_object_distance = 28;
     @Override public void runOpMode()
     {
         float cross_distance = 72;
@@ -139,56 +142,12 @@ public class TeamAutoDriveRedAllianceFront extends LinearOpMode
         telemetry.addData("Auto - move to team object","Drive %5.2f inches ", team_object_distance);
         telemetry.update();
         //sleep(1000);
-        tad.driveRobot(DRIVE_SPEED,  team_object_distance,  team_object_distance, 4.0);  // S1: Forward 24 Inches with 5 Sec timeout
-        float turn_distance = 26;
-        float forward_distance = 6;
-        float reverse_distance = 10;
-        int new_object_position = -1;
+
+        // if object not found at start then try again else move forward
         if (obj_location == -1) {
-            // if object not found at start then try again
-            try {
-                new_object_position = tad.teamObjectDetectionTfod();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            if (new_object_position != -1) {
-                // object found at center place
-                team_object_position = 2;
-            } else {
-                // even after getting close not found object then turn right and try to find object again
-                tad.moveParallelToLeft(400);
-                //turn right
-                tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
-                // if object not found then try again
-                try {
-                    new_object_position = tad.teamObjectDetectionTfod();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                if (new_object_position != -1) {
-                    // object found at right place
-                    team_object_position = 3;
-                } else {
-                    // even after getting close and turning right object not found found then turn 180 degrees and try to find object again
-                    // it might be on left side
-                    // if object not found then try again after turning 180 degrees
-                    //tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
-                    //tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
-                    tad.driveRobot(TURN_SPEED, (turn_distance + 1) * 2, -(turn_distance + 1) * 2, 6.0);
-                    try {
-                        new_object_position = tad.teamObjectDetectionTfod();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    if (new_object_position != -1) {
-                        team_object_position = 1;
-                    } else {
-                        telemetry.addData("Not able  to find object", " even from close position");
-                        telemetry.update();
-                        sleep(1000);
-                    }
-                }
-            }
+            team_object_position = tad.tryAgainTeamObjectDetection();
+        } else {
+            tad.driveRobot(DRIVE_SPEED,  team_object_distance,  team_object_distance, 4.0);  // S1: Forward 24 Inches with 5 Sec timeout
         }
         // Decide what to do based on position
         // if center then put pixel next to team object, go back 2 inch and turn left
