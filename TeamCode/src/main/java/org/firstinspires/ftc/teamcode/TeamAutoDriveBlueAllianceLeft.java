@@ -135,13 +135,13 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         // if right then turn right, move forward 2 inches, put pixel next to team object, move back 2 inches, turn 180 degrees
         if (team_object_position == 2) {
             // if team object is in center
-            tad.driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 3.0);
+            //tad.driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 3.0);
             //move back and leave the pixel
             telemetry.addData("Auto - drop  team object", "Drive back %5.2f inches ", reverse_distance);
             telemetry.update();
             //sleep(1000);
-            tad.pushTrayPixel(1500);
-            tad.driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 3.0);  // S1: Forward 24 Inches with 5 Sec timeout
+            tad.pushTrayPixel(1500, forward_distance, reverse_distance);
+            //tad.driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 3.0);  // S1: Forward 24 Inches with 5 Sec timeout
             // turn left towards the board
             telemetry.addData("Auto - turn left","turn left %5.2f inches ", turn_distance);
             telemetry.update();
@@ -160,12 +160,12 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
             //move forward and drop the pixel
             telemetry.addData("Auto - drop  team object", "Drive forward %5.2f inches ", reverse_distance);
             telemetry.update();
-            tad.driveRobot(DRIVE_SPEED, forward_distance + 1.5, forward_distance + 1.5, 4.0);
+            //tad.driveRobot(DRIVE_SPEED, forward_distance + 1.5, forward_distance + 1.5, 4.0);
             //move back
             telemetry.addData("Auto - drive back", "Drive back %5.2f inches ", reverse_distance);
             telemetry.update();
-            tad.pushTrayPixel(1500);
-            tad.driveRobot(DRIVE_SPEED, -reverse_distance/2, -reverse_distance/2, 2.0);
+            tad.pushTrayPixel(1500, forward_distance + 2, reverse_distance/2);
+            //tad.driveRobot(DRIVE_SPEED, -reverse_distance/2, -reverse_distance/2, 2.0);
             tad.moveParallelToLeft(1200);
             tad.driveRobot(DRIVE_SPEED, forward_distance*9, forward_distance*9, 3.0);
             tad.moveParallelToRight(600);
@@ -184,12 +184,12 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
             //move forward and drop the pixel
             telemetry.addData("Auto - drop  team object", "Drive forward %5.2f inches ", reverse_distance);
             telemetry.update();
-            tad.driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 3.0);
+            //tad.driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 3.0);
             //move back
             telemetry.addData("Auto - drive back", "Drive back %5.2f inches ", reverse_distance);
             telemetry.update();
-            tad.pushTrayPixel(1500);
-            tad.driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 3.0);
+            tad.pushTrayPixel(1500, forward_distance, reverse_distance);
+            //tad.driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 3.0);
             // turn 180 degrees towards the team object
             telemetry.addData("Auto - turn 180 degrees","turn right %5.2f inches ", turn_distance);
             telemetry.update();
