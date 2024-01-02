@@ -116,7 +116,7 @@ public class TeamAutoDrive extends Thread {
     double claw_end_position = .4;
     double claw_increment = .1;
 
-    static final double DRIVE_SPEED = 0.6;
+    static final double DRIVE_SPEED = 1;
     static final double TURN_SPEED = 0.6;
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
@@ -165,7 +165,7 @@ public class TeamAutoDrive extends Thread {
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
     private float turn_distance = 27;
-    private float team_object_distance = 28;
+    private float team_object_distance = 30;
 
     TeamAutoDrive(HardwareMap map, Telemetry tel, Gamepad pad, String tfod_model) {
         gamepad1 = pad;
@@ -206,7 +206,7 @@ public class TeamAutoDrive extends Thread {
 
         clawServo.setPosition(claw_start_position);
         try {
-            sleep(500);
+            sleep(200);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -215,7 +215,7 @@ public class TeamAutoDrive extends Thread {
 
     private boolean findAprilTag(int tag_id) {
         try {
-            sleep(500);
+            sleep(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -236,7 +236,7 @@ public class TeamAutoDrive extends Thread {
 
         // Tell the driver what we see, and what to do.
         if (targetFound) {
-            telemetry.addData(">", "HOLD Left-Bumper to Drive to Target\n");
+            telemetry.addData(">", "The distance to April tag is \n");
             telemetry.addData("Target", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
             telemetry.addData("Range", "%5.1f inches", desiredTag.ftcPose.range);
             telemetry.addData("Bearing", "%3.0f degrees", desiredTag.ftcPose.bearing);
@@ -249,7 +249,7 @@ public class TeamAutoDrive extends Thread {
         }
         telemetry.update();
         try {
-            sleep(200);
+            sleep(50);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -287,7 +287,7 @@ public class TeamAutoDrive extends Thread {
             // if target found go closer and in-front of april tag
             // use the encoder based drive function
             desired_range = (desiredTag.ftcPose.y - 3 * DESIRED_DISTANCE);
-            driveRobot(DRIVE_SPEED, desired_range, desired_range, 10.0);
+            driveRobot(DRIVE_SPEED, desired_range, desired_range, 3.0);
             // use april tag based moveRobot function
             //  moveRobotUsingAprilTag(targetFound) // (drive, strafe, turn);
             turnRobotOff();
@@ -301,7 +301,7 @@ public class TeamAutoDrive extends Thread {
             }
         }
         try {
-            sleep(200);
+            sleep(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -324,7 +324,7 @@ public class TeamAutoDrive extends Thread {
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
         telemetry.update();
-        sleep(200);
+        sleep(50);
 
         // try again if we did not find object in first attempt
         int repeat_count = 3;
@@ -333,7 +333,7 @@ public class TeamAutoDrive extends Thread {
                 currentRecognitions = tfod.getRecognitions();
                 telemetry.addData("# Objects Detected on next try", currentRecognitions.size());
                 telemetry.update();
-                sleep(200);
+                sleep(50);
                 if (currentRecognitions.size() > 0) {
                     break;
                 }
@@ -374,7 +374,7 @@ public class TeamAutoDrive extends Thread {
             }
             telemetry.addData("Team element is at location", "%s", location);
             telemetry.update();
-            sleep(250);
+            sleep(50);
         } // end of if
         telemetry.update();
         return location;
@@ -430,7 +430,7 @@ public class TeamAutoDrive extends Thread {
         telemetry.addData("Sleep time", "time %5d and range %5.2f", sleep_time, range);
         telemetry.update();
         try {
-            sleep(250);
+            sleep(50);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -470,15 +470,16 @@ public class TeamAutoDrive extends Thread {
     }
 
     public void moveParallelToLeft(int sl_sec) {
-        telemetry.addData("Driving", "to left for  %5d ", sl_sec);
+        int multiplication_factor = 3;
+        double power = .30 * multiplication_factor;
+        telemetry.addData("Driving", "to left for  %5d ", sl_sec / multiplication_factor);
         telemetry.update();
-        double power = .30;
         leftFrontDrive.setPower((-1) * power);
         rightFrontDrive.setPower((1) * power);
         rightBackDrive.setPower((-1) * power);
         leftBackDrive.setPower((1) * power);
         try {
-            sleep(sl_sec);
+            sleep(sl_sec/multiplication_factor);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -486,15 +487,16 @@ public class TeamAutoDrive extends Thread {
     }
 
     public void moveParallelToRight(int sl_sec) {
-        telemetry.addData("Driving", "to Right for  %5d ", sl_sec);
+        int multiplication_factor = 3;
+        double power = .30 * multiplication_factor;
+        telemetry.addData("Driving", "to Right for  %5d ", sl_sec/multiplication_factor);
         telemetry.update();
-        double power = .30;
         leftFrontDrive.setPower((1) * power);
         rightFrontDrive.setPower((-1) * power);
         rightBackDrive.setPower((1) * power);
         leftBackDrive.setPower((-1) * power);
         try {
-            sleep(sl_sec);
+            sleep(sl_sec / multiplication_factor);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -524,7 +526,7 @@ public class TeamAutoDrive extends Thread {
                     .addProcessors(tfod, aprilTag)
                     .build();
             try {
-                setManualExposure(5, 250);
+                setManualExposure(3, 250);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -631,7 +633,7 @@ public class TeamAutoDrive extends Thread {
                 exposureMS,
                 gain);
         telemetry.update();
-        sleep(100);
+        sleep(50);
     }
 
     /*
@@ -729,21 +731,23 @@ public class TeamAutoDrive extends Thread {
 //        rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         try {
-            sleep(250);   // optional pause after each move.
+            sleep(150);   // optional pause after each move.
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void pushTrayPixel(long sleep_second) {
+    public void pushTrayPixel(long sleep_second, float forward_distance, float reverse_distance) {
         try {
             double currentTrayPos = tray_start_position;
             trayServo.setDirection(REVERSE);
             trayServo.setPower(1);
+            driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 1.5);
             sleep(sleep_second);
             trayServo.setPower(0);
             trayServo.setDirection(FORWARD);
             trayServo.setPower(1);
+            driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 1.5);
             sleep(sleep_second);
             trayServo.setPower(0);
         } catch (InterruptedException e) {
@@ -780,7 +784,7 @@ public class TeamAutoDrive extends Thread {
             }
             //clawServo.setPosition(claw_end_position);
             //sleep(1000);
-            driveRobot(DRIVE_SPEED / 2, -5, -5, 1.0);
+            driveRobot(DRIVE_SPEED / 3, -5, -5, 1.0);
             //sleep (500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -796,17 +800,19 @@ public class TeamAutoDrive extends Thread {
             throw new RuntimeException(e);
         }
         armServo.setPosition(arm_start_position);
-        int buffer_time = 0;
+        int move_time = 0;
         if (april_tag_number == 1 || april_tag_number == 6){
-            buffer_time = 600;
+            move_time = 1650;
+        } else if (april_tag_number == 4 || april_tag_number == 3){
+            move_time = 2700;
+        } else {
+            move_time = 2100;
         }
         if (april_tag_number <= 3) {
 
-            moveParallelToLeft((april_tag_number * 1050) + buffer_time);
+            moveParallelToLeft(move_time);
         } else {
-            // for left side compute the multiplication factor
-            int temp_tag = 7 - april_tag_number;
-            moveParallelToRight(temp_tag * 1050 + buffer_time);
+            moveParallelToRight( move_time);
         }
         driveRobot(DRIVE_SPEED, 14, 14, 2.0);
     }

@@ -36,9 +36,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 
-@Autonomous(name="FRONT RED", group = "Concept")
+@Autonomous(name="FRONT BLUE", group = "Concept")
 //@Disabled
-public class TeamAutoDriveRedAllianceFront extends LinearOpMode
+public class TeamAutoDriveBlueAllianceFront extends LinearOpMode
 {
     private TeamAutoDrive tad ; //= new TeamAutoDrive(hardwareMap, telemetry);;
     private ElapsedTime runtime = new ElapsedTime();
@@ -107,65 +107,67 @@ public class TeamAutoDriveRedAllianceFront extends LinearOpMode
         // if right then turn right, move forward 2 inches, put pixel next to team object, move back 2 inches, turn 180 degrees
         if (team_object_position == 2) {
             // if team object is in center
-           // tad.driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 3.0);
+            // tad.driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 3.0);
             tad.pushTrayPixel(1500, forward_distance, reverse_distance);
             //move back and leave the pixel
             //tad.driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 3.0);  // S1: Forward 24 Inches with 5 Sec timeout
-            tad.moveParallelToLeft(1200);
-            // turn right towards the board
-            tad.driveRobot(TURN_SPEED,   turn_distance, -turn_distance, 4.0);
-            tad.moveParallelToLeft(2700);
+            // turn left towards the board
+            tad.moveParallelToRight(1200);
+            //turn left
+            tad.driveRobot(TURN_SPEED, -turn_distance, turn_distance, 4.0);
+            tad.moveParallelToRight(2700);
             // for the front side - move closer to april tag by crossing
-            tad.driveRobot(1, cross_distance, cross_distance, 5.0);
-            tad.moveParallelToRight(2100);
-        } else if (team_object_position == 3){
-            // if team object position is right
-            tad.moveParallelToLeft(400);
-            tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
+            tad.driveRobot(DRIVE_SPEED, cross_distance, cross_distance, 5.0);
+            tad.moveParallelToLeft(2100);
+        } else if (team_object_position == 1){
+            // if team object position is left
+            tad.moveParallelToRight(400);
+            //turn left
+            tad.driveRobot(TURN_SPEED, -turn_distance, turn_distance, 3.0);
             //move forward and drop the pixel
             //tad.driveRobot(DRIVE_SPEED, forward_distance+2, forward_distance+2, 3.0);
             tad.pushTrayPixel(1500,forward_distance, reverse_distance );
             //move back
             //tad.driveRobot(DRIVE_SPEED, -reverse_distance/2, -reverse_distance/2, 2.0);
-            tad.moveParallelToLeft(2400);
-            // for the front side - move closer to april tag by crossing
-            tad.driveRobot(1, cross_distance, cross_distance, 5.0);
             tad.moveParallelToRight(2400);
-        } else if (team_object_position == 1){
-            // if team object position is left;
+            // for the front side - move closer to april tag by crossing
+            tad.driveRobot(DRIVE_SPEED, cross_distance, cross_distance, 5.0);
+            tad.moveParallelToLeft(2400);
+        } else if (team_object_position == 3){
+            // if team object position is right;
             // move little left before turning right
-            tad.moveParallelToRight(400);
-            tad.driveRobot(TURN_SPEED, -turn_distance, turn_distance, 3.0);
+            tad.moveParallelToLeft(400);
+            tad.driveRobot(TURN_SPEED, turn_distance, -turn_distance, 3.0);
             //move forward and drop the pixel
             //tad.driveRobot(DRIVE_SPEED, forward_distance+2, forward_distance+2, 3.0);
             tad.pushTrayPixel(1500, forward_distance+2,reverse_distance/2);
             //move back
             //tad.driveRobot(DRIVE_SPEED, -reverse_distance/2, -reverse_distance/2, 3.0);
             // turn 180 degrees towards the team object
-            tad.moveParallelToRight(2600);
+            tad.moveParallelToLeft(2600);
             tad.driveRobot(TURN_SPEED,   (turn_distance+1)*2, -(turn_distance+1)*2, 6.0);
             // for the front side - move closer to april tag by crossing
-            tad.driveRobot(1, cross_distance, cross_distance, 5.0);
-            tad.moveParallelToRight(1500);
+            tad.driveRobot(DRIVE_SPEED, cross_distance, cross_distance, 5.0);
+            tad.moveParallelToLeft(1500);
         } else {
             telemetry.addData("Not able  to find object"," object position %d ", team_object_position);
             telemetry.update();
             team_object_position = 2;
             sleep(1000);
-
-            //act as if object is in middle
+            // act like object position is 2
             // if team object is in center
             // tad.driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 3.0);
             tad.pushTrayPixel(1500, forward_distance, reverse_distance);
             //move back and leave the pixel
             //tad.driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 3.0);  // S1: Forward 24 Inches with 5 Sec timeout
-            tad.moveParallelToLeft(1200);
-            // turn right towards the board
-            tad.driveRobot(TURN_SPEED,   turn_distance, -turn_distance, 4.0);
-            tad.moveParallelToLeft(2700);
+            // turn left towards the board
+            tad.moveParallelToRight(1200);
+            //turn left
+            tad.driveRobot(TURN_SPEED, -turn_distance, turn_distance, 4.0);
+            tad.moveParallelToRight(2700);
             // for the front side - move closer to april tag by crossing
-            tad.driveRobot(1, cross_distance, cross_distance, 5.0);
-            tad.moveParallelToRight(2100);
+            tad.driveRobot(DRIVE_SPEED, cross_distance, cross_distance, 5.0);
+            tad.moveParallelToLeft(2100);
         }
         return team_object_position;
     }
