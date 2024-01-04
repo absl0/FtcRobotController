@@ -114,10 +114,10 @@ public class TeamAutoDriveRedAllianceFront extends LinearOpMode
             tad.moveParallelToLeft(1200);
             // turn right towards the board
             tad.driveRobot(TURN_SPEED,   turn_distance, -turn_distance, 4.0);
-            tad.moveParallelToLeft(2700);
+            tad.moveParallelToLeft(2550);
             // for the front side - move closer to april tag by crossing
             tad.driveRobot(1, cross_distance, cross_distance, 5.0);
-            tad.moveParallelToRight(2100);
+            tad.moveParallelToRight(2200);
         } else if (team_object_position == 3){
             // if team object position is right
             tad.moveParallelToLeft(400);
