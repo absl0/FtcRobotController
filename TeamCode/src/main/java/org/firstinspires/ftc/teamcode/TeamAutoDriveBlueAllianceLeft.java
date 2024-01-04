@@ -67,14 +67,14 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
  *
  */
 
-@Autonomous(name="Team - Blue Left Auto", group = "Concept")
+@Autonomous(name="BLUE", group = "Concept")
 //@Disabled
 public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
 {
     private TeamAutoDrive tad ; //= new TeamAutoDrive(hardwareMap, telemetry);;
     private ElapsedTime runtime = new ElapsedTime();
 
-    static final double     DRIVE_SPEED             = 0.6;
+    static final double     DRIVE_SPEED             = 1;
     static final double     TURN_SPEED              = 0.6;
     private static final String TFOD_MODEL_FILE = "TeamPropAbs0.tflite";//"/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag

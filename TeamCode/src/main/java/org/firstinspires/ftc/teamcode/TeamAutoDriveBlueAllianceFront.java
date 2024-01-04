@@ -44,8 +44,8 @@ public class TeamAutoDriveBlueAllianceFront extends LinearOpMode
     private ElapsedTime runtime = new ElapsedTime();
 
     static final double     DRIVE_SPEED             = 1;
-    static final double     TURN_SPEED              = 0.5;
-    private static final String TFOD_MODEL_FILE = "TeamPropAbs0RED.tflite";//"/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
+    static final double     TURN_SPEED              = 0.6;
+    private static final String TFOD_MODEL_FILE = "TeamPropAbs0.tflite";//"/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
     private float turn_distance = 27;
     private float forward_distance = 3;
@@ -80,11 +80,9 @@ public class TeamAutoDriveBlueAllianceFront extends LinearOpMode
             //sleep for some time to give camera time to detect april tag
             //sleep(300);
             //drive to April Tag
-            //for add 3 to object location to match to april tag number
-            int april_tag_number = obj_location + 3;
-            tad.driveToTeamAprilTag(april_tag_number);
+                        tad.driveToTeamAprilTag(obj_location);
             tad.dropPixel();
-            tad.parkRobot(april_tag_number);
+            tad.parkRobot(obj_location);
             break;
         }
     }
@@ -148,7 +146,7 @@ public class TeamAutoDriveBlueAllianceFront extends LinearOpMode
             tad.driveRobot(TURN_SPEED,   (turn_distance+1)*2, -(turn_distance+1)*2, 6.0);
             // for the front side - move closer to april tag by crossing
             tad.driveRobot(DRIVE_SPEED, cross_distance, cross_distance, 5.0);
-            tad.moveParallelToLeft(1500);
+            tad.moveParallelToLeft(1800);
         } else {
             telemetry.addData("Not able  to find object"," object position %d ", team_object_position);
             telemetry.update();

@@ -107,9 +107,10 @@ public class TeamAutoDrive extends Thread {
     Servo armServo, clawServo;
     CRServo trayServo;
 
+    final int CAMERA_EXPOSURE = 15; // for bright day light set this to 3 and for low light like garage set it to 15
     double tray_start_position = 0.5;
     double tray_end_position = 2;
-    double arm_start_position = 0.2;
+    double arm_start_position = 0.3;
     double claw_start_position = 0;
 
     double arm_end_position = .80;
@@ -215,7 +216,7 @@ public class TeamAutoDrive extends Thread {
 
     private boolean findAprilTag(int tag_id) {
         try {
-            sleep(100);
+            sleep(500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -249,7 +250,7 @@ public class TeamAutoDrive extends Thread {
         }
         telemetry.update();
         try {
-            sleep(50);
+            sleep(500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -479,7 +480,7 @@ public class TeamAutoDrive extends Thread {
         rightBackDrive.setPower((-1) * power);
         leftBackDrive.setPower((1) * power);
         try {
-            sleep(sl_sec/multiplication_factor);
+            sleep(sl_sec/(multiplication_factor)); //+(long)0.5)
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -496,7 +497,7 @@ public class TeamAutoDrive extends Thread {
         rightBackDrive.setPower((1) * power);
         leftBackDrive.setPower((-1) * power);
         try {
-            sleep(sl_sec / multiplication_factor);
+            sleep(sl_sec / (multiplication_factor)); //+(long)0.5
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -526,7 +527,7 @@ public class TeamAutoDrive extends Thread {
                     .addProcessors(tfod, aprilTag)
                     .build();
             try {
-                setManualExposure(3, 250);
+                setManualExposure(CAMERA_EXPOSURE, 250);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -740,12 +741,12 @@ public class TeamAutoDrive extends Thread {
     public void pushTrayPixel(long sleep_second, float forward_distance, float reverse_distance) {
         try {
             double currentTrayPos = tray_start_position;
-            trayServo.setDirection(REVERSE);
+            trayServo.setDirection(FORWARD );
             trayServo.setPower(1);
             driveRobot(DRIVE_SPEED, forward_distance, forward_distance, 1.5);
             sleep(sleep_second);
             trayServo.setPower(0);
-            trayServo.setDirection(FORWARD);
+            trayServo.setDirection(REVERSE);
             trayServo.setPower(1);
             driveRobot(DRIVE_SPEED, -reverse_distance, -reverse_distance, 1.5);
             sleep(sleep_second);
@@ -802,11 +803,11 @@ public class TeamAutoDrive extends Thread {
         armServo.setPosition(arm_start_position);
         int move_time = 0;
         if (april_tag_number == 1 || april_tag_number == 6){
-            move_time = 1650;
+            move_time = 1900;
         } else if (april_tag_number == 4 || april_tag_number == 3){
             move_time = 2700;
         } else {
-            move_time = 2100;
+            move_time = 2400;
         }
         if (april_tag_number <= 3) {
 

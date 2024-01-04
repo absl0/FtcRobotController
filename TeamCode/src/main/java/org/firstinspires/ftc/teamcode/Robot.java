@@ -870,17 +870,47 @@ public class Robot extends Thread {
 
     /* release the pixel */
     public  void pixRelease(){
-        clawServo.setPosition(0.4);
+        double currPosition = 0;
+        currPosition = clawServo.getPosition();
+        currPosition = currPosition + 0.1;
+        if (currPosition < 1){
+            clawServo.setPosition(currPosition);
+        }
+//        while (currPosition <= 0.4) {
+//            currPosition = currPosition + 0.1;
+//            clawServo.setPosition(currPosition);
+//            try {
+//                sleep(100);
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
     }
 
     /* stowed away inside, claw facing backwards */
     public void armPark (){
-        armServo.setPosition(0);
+        armServo.setPosition(.25);
     }
 
     /* pointing down */
     public void armRdy (){
-        armServo.setPosition(1);
+        armServo.setPosition(1.2);
+    }
+
+    public void armUp (){
+        double curr_position = armServo.getPosition();
+        curr_position = curr_position + 0.1;
+        if(curr_position <= 1) {
+            armServo.setPosition(curr_position);
+        }
+    }
+
+    public void armDown (){
+        double curr_position = armServo.getPosition();
+        curr_position = curr_position - 0.1;
+        if(curr_position >= 0) {
+            armServo.setPosition(curr_position);
+        }
     }
 
     /* claw to face backdrop and release the pixel */
@@ -891,7 +921,8 @@ public class Robot extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        pixRelease();
+        clawServo.setPosition(0.4);
+        //pixRelease();
     }
 
     /* just a test routine */
