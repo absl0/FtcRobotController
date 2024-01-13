@@ -95,6 +95,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
 
         while (opModeIsActive())
         {
+//            tad.driveRobot(tad.TURN_SPEED,   (-tad.turn_distance*2)-0.5, (tad.turn_distance*2)-0.5, 4.5);
             desiredTag  = null;
             int obj_location = -1;
             try {
@@ -132,12 +133,12 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
         // if right then turn right, move forward 2 inches, put pixel next to team object, move back 2 inches, turn 180 degrees
         if (team_object_position == 2) {
             // if team object is in center
-            tad.pushTrayPixel(1500, tad.forward_distance, tad.reverse_distance);
+            tad.pushTrayPixel(1500, tad.forward_distance-2, tad.reverse_distance);
             // turn left towards the board
             tad.driveRobot(tad.TURN_SPEED,   -tad.turn_distance, tad.turn_distance, 4.5);
             // move closer to April Tag
             tad.driveRobot(tad.DRIVE_SPEED, tad.backdrop_cross_distance, tad.backdrop_cross_distance, 3.0);
-            tad.moveParallelToLeftD(tad.DRIVE_SPEED, 2, 2.0);
+            tad.moveParallelToRightD(tad.DRIVE_SPEED, 3, 2.0);
         } else if (team_object_position == 1){
             // if team object position is left
             // move little away from object
@@ -149,7 +150,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
             //tad.moveParallelToLeft(1200);
             tad.moveParallelToLeftD(tad.DRIVE_SPEED, 12, 2.0);
             tad.driveRobot(tad.DRIVE_SPEED, tad.backdrop_cross_distance, tad.backdrop_cross_distance, 3.0);
-            tad.moveParallelToRightD(tad.DRIVE_SPEED, 3, 2.0);
+            tad.moveParallelToRightD(tad.DRIVE_SPEED, 8, 2.0);
             //tad.moveParallelToRight(600);
         } else if (team_object_position == 3){
             // if team object position is right
@@ -161,7 +162,7 @@ public class TeamAutoDriveBlueAllianceLeft extends LinearOpMode
             tad.moveParallelToLeftD(tad.DRIVE_SPEED, 9, 2.0);
             tad.pushTrayPixel(1500, (float) (tad.forward_distance+tad.move_away_adjustment), tad.reverse_distance+2);
             // turn 180 degrees towards the team object
-            tad.driveRobot(tad.TURN_SPEED,   (tad.turn_distance)*2, -(tad.turn_distance)*2, 6.0);
+            tad.driveRobot(tad.TURN_SPEED,   (tad.turn_distance*2)-0.5, -(tad.turn_distance*2)-0.5, 6.0);
             tad.moveParallelToLeftD(tad.DRIVE_SPEED, 3, 2.0);
             tad.driveRobot(tad.DRIVE_SPEED, tad.backdrop_cross_distance-5, tad.backdrop_cross_distance-5, 3.0);
         } else {

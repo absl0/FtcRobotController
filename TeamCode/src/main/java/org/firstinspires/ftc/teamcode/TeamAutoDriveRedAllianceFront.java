@@ -116,7 +116,7 @@ public class TeamAutoDriveRedAllianceFront extends LinearOpMode
             // for the front side - move closer to april tag by crossing
             tad.driveRobot(1, tad.front_cross_distance+18, tad.front_cross_distance+18, 5.0);
             //move towards April Tag
-            tad.moveParallelToRightD(tad.DRIVE_SPEED, 30, 2.0);
+            tad.moveParallelToRightD(tad.DRIVE_SPEED, 25, 2.0);
             //tad.moveParallelToRight(2200);
         } else if (team_object_position == 3){
             // if team object position is right
@@ -135,7 +135,7 @@ public class TeamAutoDriveRedAllianceFront extends LinearOpMode
             // for the front side - move closer to april tag by crossing
             tad.driveRobot(1, tad.front_cross_distance+3, tad.front_cross_distance+3, 5.0);
             //move closer to April Tag
-            tad.moveParallelToRightD(tad.DRIVE_SPEED, 36, 4.0);
+            tad.moveParallelToRightD(tad.DRIVE_SPEED, 25, 4.0);
             //tad.moveParallelToRight(2400);
         } else if (team_object_position == 1){
             // if team object position is left;
@@ -146,14 +146,14 @@ public class TeamAutoDriveRedAllianceFront extends LinearOpMode
             //move forward and drop the pixel
             tad.pushTrayPixel(1500, (float) (tad.forward_distance+tad.move_away_adjustment),tad.reverse_distance-3);
             //move closer to cross bar
-            tad.moveParallelToRightD(tad.DRIVE_SPEED, 27, 4.0);
+            tad.moveParallelToRightD(tad.DRIVE_SPEED, 24, 4.0);
             // tad.moveParallelToRight(2600);
             // turn 180 degrees towards the team object
-            tad.driveRobot(tad.TURN_SPEED,   (tad.turn_distance)*2, -(tad.turn_distance)*2, 6.0);
+            tad.driveRobot(tad.TURN_SPEED,   (tad.turn_distance*2)-0.5, -(tad.turn_distance*2)-0.5, 6.0);
             // for the front side - move closer to april tag by crossing
             tad.driveRobot(tad.DRIVE_SPEED, tad.front_cross_distance, tad.front_cross_distance, 5.0);
             //mover closer to April Tag
-            tad.moveParallelToRightD(tad.DRIVE_SPEED, 21, 3.0);
+            tad.moveParallelToRightD(tad.DRIVE_SPEED, 15, 3.0);
             //tad.moveParallelToRight(1500);
         } else {
             telemetry.addData("Not able  to find object"," object position %d ", team_object_position);

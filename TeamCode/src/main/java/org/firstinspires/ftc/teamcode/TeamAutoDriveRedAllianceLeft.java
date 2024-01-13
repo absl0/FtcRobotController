@@ -114,7 +114,7 @@ public class TeamAutoDriveRedAllianceLeft extends LinearOpMode
             //turn right
             tad.driveRobot(tad.TURN_SPEED, tad.turn_distance, -tad.turn_distance, 3.0);
             // move more left to make sure pixel is dropped on line
-            tad.moveParallelToLeftD(tad.DRIVE_SPEED, 6, 2.0);
+            tad.moveParallelToLeftD(tad.DRIVE_SPEED, 9, 2.0);
             //move forward and drop the pixel
             //since moved little to left add to forward distance and to avoid hitting the back go less reverse
             tad.pushTrayPixel(1500, (float) (tad.forward_distance+tad.move_away_adjustment),tad.reverse_distance-(float)3.0);
@@ -124,7 +124,7 @@ public class TeamAutoDriveRedAllianceLeft extends LinearOpMode
             tad.driveRobot(tad.DRIVE_SPEED, tad.backdrop_cross_distance, tad.backdrop_cross_distance, 3.0);
 //            tad.moveParallelToLeft(600);
             //align to April Tag
-            tad.moveParallelToLeftD(tad.DRIVE_SPEED, 3, 2.0);
+            tad.moveParallelToLeftD(tad.DRIVE_SPEED, 5, 2.0);
         } else if (team_object_position == 1){
             // if team object position is left
             // turn right towards the team object
@@ -134,7 +134,7 @@ public class TeamAutoDriveRedAllianceLeft extends LinearOpMode
             tad.driveRobot(tad.TURN_SPEED, -tad.turn_distance, tad.turn_distance, 3.0);
             tad.pushTrayPixel(1500, (float) (tad.forward_distance+tad.move_away_adjustment), tad.reverse_distance+2);
             //turn 180 degrees
-            tad.driveRobot(tad.TURN_SPEED,   (tad.turn_distance+1)*2, -(tad.turn_distance+1)*2, 6.0);
+            tad.driveRobot(tad.TURN_SPEED,   (tad.turn_distance*2)-0.5, -(tad.turn_distance*2)-0.5, 6.0);
             //drive towards April Tag
             tad.driveRobot(tad.DRIVE_SPEED, tad.backdrop_cross_distance-5, tad.backdrop_cross_distance-5, 3.0);
             //align to April Tag
