@@ -81,7 +81,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Autonomous(name="Team - Drive To AprilTag", group = "Concept")
-//@Disabled
+@Disabled
 public class AutoDriveToAprilTag extends LinearOpMode
 {
     // Adjust these numbers to suit your robot.

@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+
 import android.util.Log;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -21,6 +24,12 @@ public class Robot extends Thread {
 
     private HardwareMap hardwareMap;
     private Telemetry telemetry;
+    private ElapsedTime runtime = new ElapsedTime();
+    double arm_start_position = 0.0;
+    double claw_start_position = 1;
+
+    double arm_end_position = .65;
+    double claw_end_position = 0.5;
 
     //private static final int TICKS_PER_ROTATION = 1440; //Tetrix motor specific
     private static final double TICKS_PER_ROTATION = 537.7; //Gobilda 5203 312 RMP motor specific
@@ -34,9 +43,9 @@ public class Robot extends Thread {
     private DcMotorEx Motor_BR;
     private DcMotorEx Motor_BL;
     private DcMotorEx Motor_LA;
-    private Servo planePusher;
-    private Servo clawServo;
-    private Servo armServo;
+    private Servo planePusher, armServo, clawServo;
+   // private CRServo clawServo;
+    //private Servo armServo;
     private BNO055IMU imu;
     private Orientation     angles;
     private PIDController   pidRotate, pidDrive;
@@ -864,18 +873,39 @@ public class Robot extends Thread {
     }
 
     /* Grab the pixel */
-    public void pixGrab() {
-        clawServo.setPosition(0);
+    public void pixRelease() {
+//        clawServo.setDirection(FORWARD);
+//        clawServo.setPower(.2);
+//        try {
+//            sleep(10);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        clawServo.setPower(0);
+        clawServo.setPosition(claw_end_position);
     }
 
     /* release the pixel */
-    public  void pixRelease(){
-        double currPosition = 0;
-        currPosition = clawServo.getPosition();
-        currPosition = currPosition + 0.1;
-        if (currPosition < 1){
-            clawServo.setPosition(currPosition);
-        }
+    public  void pixGrab(){
+
+//        clawServo.setDirection(REVERSE);
+//        clawServo.setPower(.8);
+//        try {
+//            sleep(10);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        clawServo.setPower(0);
+         clawServo.setPosition(claw_start_position);
+
+//        double currPosition = 0;
+//        currPosition = clawServo.getPosition();
+//        currPosition = currPosition + 0.1;
+//        if (currPosition < .2){
+//            clawServo.setPosition(currPosition);
+//        } else {
+//            clawServo.setPosition(0.2);
+//        }
 //        while (currPosition <= 0.4) {
 //            currPosition = currPosition + 0.1;
 //            clawServo.setPosition(currPosition);
@@ -889,40 +919,137 @@ public class Robot extends Thread {
 
     /* stowed away inside, claw facing backwards */
     public void armPark (){
-        armServo.setPosition(.25);
+        armServo.setPosition(.1);
     }
 
     /* pointing down */
     public void armRdy (){
-        armServo.setPosition(1.2);
+        armServo.setPosition(1);
+    }
+    public void armGatePickUp(){
+        armServo.setPosition(.83);
+    };
+    public void armDown (){
+        double curr_position = armServo.getPosition();
+        telemetry.addData("Arm Down", "Position %f ", curr_position); //Displays "Status: Initialized"
+        telemetry.update();
+        try {
+            sleep(10);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        curr_position = curr_position + 0.1;
+        if(curr_position <= 1) {
+            armServo.setPosition(curr_position);
+            try {
+                sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            armServo.setPosition(1);
+        }
     }
 
     public void armUp (){
         double curr_position = armServo.getPosition();
-        curr_position = curr_position + 0.1;
-        if(curr_position <= 1) {
+        telemetry.addData("Arm Up", "Position %f ", curr_position); //Displays "Status: Initialized"
+        telemetry.update();
+        try {
+            sleep(10);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        curr_position = curr_position - 0.1;
+        if(curr_position >= 0.0) {
             armServo.setPosition(curr_position);
+            try {
+                sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            armServo.setPosition(0.1);
         }
     }
 
-    public void armDown (){
-        double curr_position = armServo.getPosition();
-        curr_position = curr_position - 0.1;
-        if(curr_position >= 0) {
-            armServo.setPosition(curr_position);
+    public void clawSlowOpen (){
+        double curr_position = clawServo.getPosition();
+        telemetry.addData("ClawOpen", "Position %f ", curr_position); //Displays "Status: Initialized"
+        telemetry.update();
+        try {
+            sleep(10);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+        curr_position = curr_position + 0.1;
+        if(curr_position >= claw_end_position) {
+            clawServo.setPosition(curr_position);
+            try {
+                sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            clawServo.setPosition(claw_end_position);
+        }
+    }
+
+    public void clawSlowClose (){
+        double curr_position = clawServo.getPosition();
+        telemetry.addData("Claw Close", "Position %f ", curr_position); //Displays "Status: Initialized"
+        telemetry.update();
+        try {
+            sleep(10);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        curr_position = curr_position - 0.1;
+        if(curr_position <= claw_start_position) {
+            clawServo.setPosition(curr_position);
+            try {
+                sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            clawServo.setPosition(claw_start_position);
+        }
+    }
+
+    public void armOff (){
+        armServo.close();
     }
 
     /* claw to face backdrop and release the pixel */
     public void pixOnBackdrop () {
-        armServo.setPosition(0.7);
+        armServo.setPosition(0.6);
         try {
             sleep(1000);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        clawServo.setPosition(0.4);
+        //clawServo.setPosition(0.2);
         //pixRelease();
+    }
+
+    public void pixGrip () {
+//        armServo.setPosition(0.2);
+//        try {
+//            sleep(200);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        clawServo.setPosition(0.1);
+//        try {
+//            sleep(100);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        clawServo.setPosition(0);
+
     }
 
     /* just a test routine */
