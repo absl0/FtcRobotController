@@ -73,7 +73,7 @@ public class TeamAutoDrive extends Thread {
     Servo clawServo;
    // CRServo clawServo, trayServo;
 
-    final int CAMERA_EXPOSURE = 1; // for bright day light set this to 3 and for low light like garage set it to 15
+    final int CAMERA_EXPOSURE = 15; // for bright day light set this to 3 and for low light like garage set it to 15
     double tray_start_position = 0.4;
     double tray_end_position = 0.7;
     double arm_start_position = 0.0;
@@ -255,13 +255,13 @@ public class TeamAutoDrive extends Thread {
             driveRobot(TURN_SPEED, -temp_turn_distance, temp_turn_distance, 3.0);
             wait_time = 1.5 * temp_turn_distance * 90;
             // decide whether to move Right or Left based on yaw positive or negative
-            if (temp_turn_distance > 0) {
-                //moveParallelToRight((int) wait_time);
-                moveParallelToRightD(DRIVE_SPEED, desiredTag.ftcPose.x, 3.0);
-            } else {
-                // moveParallelToLeft((int) -wait_time);
-                moveParallelToLeftD(DRIVE_SPEED, desiredTag.ftcPose.x, 3.0);
-            }
+//            if (temp_turn_distance > 0) {
+//                //moveParallelToRight((int) wait_time);
+//                moveParallelToRightD(DRIVE_SPEED, desiredTag.ftcPose.x, 3.0);
+//            } else {
+//                // moveParallelToLeft((int) -wait_time);
+//                moveParallelToLeftD(DRIVE_SPEED, desiredTag.ftcPose.x, 3.0);
+//            }
             targetFound = findAprilTag(DESIRED_TAG_ID);
         }
         // drive closer to april tag
@@ -283,19 +283,20 @@ public class TeamAutoDrive extends Thread {
 //                //moveParallelToLeft((int) wait_time);
 //            }
 //        }
-//        try {
-//            sleep(100);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-//        // Scan for April Tag again to be sure that you are closer
-//        targetFound = findAprilTag(DESIRED_TAG_ID);
-        moveRobotUsingAprilTag(targetFound);
-        if (team_object_position == 3 || team_object_position == 6){
-            moveParallelToRightD(DRIVE_SPEED, 2, 2.0);
-        } else if (team_object_position == 1 || team_object_position == 4){
-            moveParallelToLeftD(DRIVE_SPEED, 2, 2.0);
+        try {
+            sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+        // Scan for April Tag again to be sure that you are closer
+        targetFound = findAprilTag(DESIRED_TAG_ID);
+        moveRobotUsingAprilTag(targetFound);
+//        if (team_object_position == 3 || team_object_position == 6){
+//            moveParallelToRightD(DRIVE_SPEED, 2, 2.0);
+//        }
+//        else if (team_object_position == 1 || team_object_position == 4){
+//            moveParallelToLeftD(DRIVE_SPEED, 2, 2.0);
+//        }
     }
 
     /**
@@ -321,7 +322,7 @@ public class TeamAutoDrive extends Thread {
                 currentRecognitions = tfod.getRecognitions();
                 telemetry.addData("# Objects Detected",  "%d on next try %d", currentRecognitions.size(), repeat_count);
                 telemetry.update();
-                sleep(200);
+                sleep(300);
                 if (currentRecognitions.size() > 0) {
                     break;
                 }
@@ -944,7 +945,7 @@ public class TeamAutoDrive extends Thread {
                         arm_end_position);
                 telemetry.update();
                 //sleep(1000);
-                currentArmPos = currentArmPos + 0.10;
+                currentArmPos = currentArmPos + 0.05;
             }
             armServo.setPosition(arm_end_position);
             //sleep(1200);
@@ -1037,22 +1038,22 @@ public class TeamAutoDrive extends Thread {
         int move_distance = 0;
         if (april_tag_number == 1 || april_tag_number == 6){
             move_time = 1900;
-            move_distance = 16;
+            move_distance = 20;
         } else if (april_tag_number == 4 || april_tag_number == 3){
             move_time = 2700;
-            move_distance = 27;
+            move_distance = 35;
         } else {
             move_time = 2400;
-            move_distance = 22;
+            move_distance = 24;
         }
         if (april_tag_number <= 3) {
-            moveParallelToLeftD(DRIVE_SPEED, move_distance, 3.0);
+            moveParallelToLeftD(DRIVE_SPEED/4, move_distance, 3.0);
             //moveParallelToLeft(move_time);
         } else {
             //moveParallelToRight( move_time);
-            moveParallelToRightD(DRIVE_SPEED, move_distance, 3.0);
+            moveParallelToRightD(DRIVE_SPEED/4, move_distance, 3.0);
         }
-        driveRobot(DRIVE_SPEED, 10, 10, 2.0);
+        driveRobot(DRIVE_SPEED/4, 10, 10, 2.0);
 
     }
 
