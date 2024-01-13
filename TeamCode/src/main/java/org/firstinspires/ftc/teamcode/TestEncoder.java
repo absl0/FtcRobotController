@@ -55,7 +55,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @Autonomous(name="TestEncoder", group="Robot")
-
+@Disabled
 public class TestEncoder extends LinearOpMode {
 
     /* Declare OpMode members. */
